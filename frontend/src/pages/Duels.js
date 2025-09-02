@@ -1,4 +1,5 @@
 import { useGame } from "../context/GameContext"
+import { useAuth } from "../context/AuthContext"
 import Card from "../components/common/Card"
 import Button from "../components/common/Button"
 import LoadingSpinner from "../components/common/LoadingSpinner"
@@ -9,7 +10,9 @@ import "../styles/Duels.css"
 import "../styles/DuelModal.css"
 
 const Duels = () => {
-  const { gameData, loading } = useGame()
+  const { gameData, loading } = useGame();
+  const { loadGameData } = useGame();
+  const { user } = useAuth();
   const [duelModalOpen, setDuelModalOpen] = useState(false)
   const [duelQuestions, setDuelQuestions] = useState([])
   const [currentQuestion, setCurrentQuestion] = useState(0)
@@ -18,6 +21,7 @@ const Duels = () => {
   const [duelOpponent, setDuelOpponent] = useState("")
   const [duelScores, setDuelScores] = useState({})
   const [waitingForOpponent, setWaitingForOpponent] = useState(false)
+  const [duelResultModal, setDuelResultModal] = useState(null)
   // const waitingAudioRef = useRef(null)
 
   if (loading) {
@@ -44,32 +48,37 @@ const Duels = () => {
 
   // Emparejamiento y lógica de duelo
   const handleStartDuel = () => {
-  socket.connect()
-  socket.emit("join_queue", { name: gameData?.user?.name || "Estudiante" })
-  setWaitingForOpponent(true)
+    socket.connect();
+    // Enviar perfil completo: id_usuario y nombre_usuario (para backend)
+    socket.emit("join_queue", {
+      id_usuario: user?.id,
+      nombre_usuario: user?.name,
+      nombre: user?.name,
+      username: user?.name || "Estudiante"
+    });
+    setWaitingForOpponent(true);
   }
 
   // Escuchar emparejamiento y preguntas
     socket.off("duel_found").on("duel_found", (data) => {
   // Ya no se reproduce ni se detiene música de espera
-      setDuelRoomId(data.duelId)
+      setDuelRoomId(data.duelId);
       // Determinar el nombre del oponente (excluyendo el propio socket.id)
-      const mySocketId = socket.id
+      const mySocketId = socket.id;
       let opponentName = "Oponente";
       if (data.players) {
         const opponentEntry = Object.entries(data.players).find(([id]) => id !== mySocketId);
-        if (opponentEntry && opponentEntry[1] && opponentEntry[1].profile && opponentEntry[1].profile.name) {
-          opponentName = opponentEntry[1].profile.name;
-        } else if (opponentEntry && opponentEntry[1] && opponentEntry[1].name) {
-          opponentName = opponentEntry[1].name;
+        if (opponentEntry && opponentEntry[1]) {
+          const profile = opponentEntry[1].profile || opponentEntry[1];
+          opponentName = profile.nombre_usuario || profile.nombre || profile.name || "Oponente";
         }
       }
-      setDuelOpponent(opponentName)
-      setDuelQuestions(data.questions)
-      setCurrentQuestion(0)
-      setDuelScores(data.scores)
-      setWaitingForOpponent(false)
-      setDuelModalOpen(true)
+      setDuelOpponent(opponentName);
+      setDuelQuestions(data.questions);
+      setCurrentQuestion(0);
+      setDuelScores(data.scores);
+      setWaitingForOpponent(false);
+      setDuelModalOpen(true);
     })
 
   // Enviar respuesta
@@ -105,12 +114,27 @@ const Duels = () => {
 
   // Recibir fin de duelo
   socket.off("duel_end").on("duel_end", (data) => {
-    if (data.winnerId === socket.id) {
-      playSound("win")
+    const playerNames = data.playerNames || {};
+    let scoresArr = [];
+    if (data.finalScores && playerNames) {
+      scoresArr = Object.entries(data.finalScores)
+        .map(([id, score]) => ({ name: playerNames[id] || playerNames[id]?.nombre_usuario || playerNames[id]?.nombre || id, score }));
     } else {
-      playSound("lose")
+      scoresArr = Object.entries(data.finalScores || {}).map(([id, score]) => ({ name: id, score }));
     }
-    alert(`¡Duelo finalizado! Ganador: ${data.winnerId === socket.id ? 'Tú' : duelOpponent}\nPuntajes: ${JSON.stringify(data.finalScores)}`)
+    let empate = false;
+    if (scoresArr.length === 2 && scoresArr[0].score === scoresArr[1].score) {
+      empate = true;
+    }
+    if (empate) {
+      playSound("lose");
+    } else if (data.winnerId === socket.id) {
+      playSound("win");
+    } else {
+      playSound("lose");
+    }
+    const winnerName = empate ? 'Empate' : (playerNames[data.winnerId] || duelOpponent || 'Desconocido');
+    setDuelResultModal({ winnerName, scoresArr });
     setDuelModalOpen(false)
     setWaitingForOpponent(false)
     setDuelQuestions([])
@@ -119,6 +143,10 @@ const Duels = () => {
     setDuelScores({})
     setDuelRoomId(null)
     setDuelOpponent("")
+    // Esperar 1 segundo antes de actualizar los datos para asegurar persistencia en BD
+    setTimeout(() => {
+      loadGameData();
+    }, 1000);
   })
 
   // Modal de preguntas
@@ -324,6 +352,32 @@ const Duels = () => {
         )}
       </div>
   {renderDuelModal()}
+  {duelResultModal && (
+      <div className="duel-modal">
+        <div className="modal-content">
+          {/* <h2 style={{ color: '#3b82f6', marginBottom: '1rem' }}>Gamificador UJAP</h2> */}
+          <h3 style={{ marginBottom: '1rem', color: '#10b981' }}>¡Duelo finalizado!</h3>
+          <p style={{ fontWeight: 'bold', marginBottom: '1rem' }}>Ganador: {duelResultModal.winnerName}</p>
+          <div style={{ marginBottom: '1.2rem' }}>
+            <h4 style={{ marginBottom: '0.5rem' }}>Puntajes:</h4>
+            <ul style={{ listStyle: 'none', padding: 0 }}>
+              {duelResultModal.scoresArr.map((p, idx) => (
+                <li key={idx} style={{ fontSize: '1.1rem', marginBottom: '0.3rem' }}>
+                  <span style={{ fontWeight: 'bold' }}>{p.name === gameData?.user?.nombre ? `${p.name} (Tú)` : p.name}:</span> {p.score}
+                </li>
+              ))}
+            </ul>
+          </div>
+          <Button variant="primary" onClick={() => setDuelResultModal(null)}>
+            Aceptar
+          </Button>
+          {/* Actualizar datos al cerrar el modal de resultados */}
+          <script>
+            {setDuelResultModal === null && loadGameData()}
+          </script>
+        </div>
+      </div>
+    )}
   </div>
   )
 }

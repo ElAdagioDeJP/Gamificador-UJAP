@@ -43,15 +43,15 @@ const Login = () => {
 
   const fillStudentCredentials = () => {
     setFormData({
-      email: "student@university.edu",
-      password: "password123",
+      email: "ana.martinez@email.edu",
+      password: "marco1234",
     })
   }
 
   const fillTeacherCredentials = () => {
     setFormData({
-      email: "profesor@university.edu",
-      password: "profesor123",
+      email: "carlos.mendez@universidad.edu",
+      password: "marco1234",
     })
   }
 

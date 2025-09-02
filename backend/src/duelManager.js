@@ -95,12 +95,16 @@ function setupDuelSocket(io) {
             { replacements: { id_materia: selectedMateria, puntos: apuesta } }
           );
           duelDbId = result?.insertId || result; // mysql2 -> insertId
-          // Insertar participantes
-          await sequelize.query(
-            `INSERT INTO Duelo_Participantes (id_duelo, id_usuario, equipo, puntuacion_final)
-             VALUES (:id_duelo, :u1, NULL, 0), (:id_duelo, :u2, NULL, 0)`,
-            { replacements: { id_duelo: duelDbId, u1: player.userId || 0, u2: opponent.userId || 0 } }
-          );
+          // Validar que ambos tengan userId válido
+          if (player.userId && opponent.userId) {
+            await sequelize.query(
+              `INSERT INTO Duelo_Participantes (id_duelo, id_usuario, equipo, puntuacion_final)
+               VALUES (:id_duelo, :u1, NULL, 0), (:id_duelo, :u2, NULL, 0)`,
+              { replacements: { id_duelo: duelDbId, u1: player.userId, u2: opponent.userId } }
+            );
+          } else {
+            console.error('Error: userId inválido para uno de los participantes. No se inserta en BD.');
+          }
         } catch (e) {
           console.error('Error creando duelo en BD:', e);
           // Si falla la BD, seguimos el duelo en memoria, pero sin persistir
@@ -157,10 +161,14 @@ function setupDuelSocket(io) {
       });
       duel.currentQuestionIndex++;
       if (duel.currentQuestionIndex >= duel.questions.length) {
-        const ids = Object.keys(duel.scores);
-        const winnerSocketId = ids.reduce((a, b) => (duel.scores[a] > duel.scores[b] ? a : b));
-        const finalScores = duel.scores;
-        io.to(duel.roomName).emit('duel_end', { winnerId: winnerSocketId, finalScores });
+  const ids = Object.keys(duel.scores);
+  const winnerSocketId = ids.reduce((a, b) => (duel.scores[a] > duel.scores[b] ? a : b));
+  const finalScores = duel.scores;
+  // Construir playerNames usando los perfiles
+  const playerNames = {};
+  playerNames[duel.player1.id] = duel.player1.profile?.nombre_usuario || duel.player1.profile?.nombre || duel.player1.profile?.name || 'Jugador 1';
+  playerNames[duel.player2.id] = duel.player2.profile?.nombre_usuario || duel.player2.profile?.nombre || duel.player2.profile?.name || 'Jugador 2';
+  io.to(duel.roomName).emit('duel_end', { winnerId: winnerSocketId, finalScores, playerNames });
 
         // Persistir resultados si el duelo existe en BD (cuando duelId es numérico)
         if (!isNaN(Number(duel.duelId))) {
