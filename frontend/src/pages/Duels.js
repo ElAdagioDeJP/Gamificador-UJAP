@@ -2,10 +2,23 @@ import { useGame } from "../context/GameContext"
 import Card from "../components/common/Card"
 import Button from "../components/common/Button"
 import LoadingSpinner from "../components/common/LoadingSpinner"
+import socket from "../services/socketService"
+import { useState, useEffect, useRef } from "react"
+import { playSound } from "../utils/duelSounds"
 import "../styles/Duels.css"
+import "../styles/DuelModal.css"
 
 const Duels = () => {
   const { gameData, loading } = useGame()
+  const [duelModalOpen, setDuelModalOpen] = useState(false)
+  const [duelQuestions, setDuelQuestions] = useState([])
+  const [currentQuestion, setCurrentQuestion] = useState(0)
+  const [selectedOption, setSelectedOption] = useState(null)
+  const [duelRoomId, setDuelRoomId] = useState(null)
+  const [duelOpponent, setDuelOpponent] = useState("")
+  const [duelScores, setDuelScores] = useState({})
+  const [waitingForOpponent, setWaitingForOpponent] = useState(false)
+  // const waitingAudioRef = useRef(null)
 
   if (loading) {
     return <LoadingSpinner />
@@ -27,6 +40,136 @@ const Duels = () => {
     if (result === "won") return "🏆 Ganado"
     if (result === "lost") return "❌ Perdido"
     return "⏸️ Finalizado"
+  }
+
+  // Emparejamiento y lógica de duelo
+  const handleStartDuel = () => {
+  socket.connect()
+  socket.emit("join_queue", { name: gameData?.user?.name || "Estudiante" })
+  setWaitingForOpponent(true)
+  }
+
+  // Escuchar emparejamiento y preguntas
+    socket.off("duel_found").on("duel_found", (data) => {
+  // Ya no se reproduce ni se detiene música de espera
+      setDuelRoomId(data.duelId)
+      // Determinar el nombre del oponente (excluyendo el propio socket.id)
+      const mySocketId = socket.id
+      let opponentName = "Oponente";
+      if (data.players) {
+        const opponentEntry = Object.entries(data.players).find(([id]) => id !== mySocketId);
+        if (opponentEntry && opponentEntry[1] && opponentEntry[1].profile && opponentEntry[1].profile.name) {
+          opponentName = opponentEntry[1].profile.name;
+        } else if (opponentEntry && opponentEntry[1] && opponentEntry[1].name) {
+          opponentName = opponentEntry[1].name;
+        }
+      }
+      setDuelOpponent(opponentName)
+      setDuelQuestions(data.questions)
+      setCurrentQuestion(0)
+      setDuelScores(data.scores)
+      setWaitingForOpponent(false)
+      setDuelModalOpen(true)
+    })
+
+  // Enviar respuesta
+  const handleAnswer = (optionId) => {
+    setSelectedOption(optionId)
+    // Efecto visual: animación de selección
+    const btn = document.querySelector(`button[key='${optionId}']`)
+    if (btn) {
+      btn.classList.add("pulse")
+      setTimeout(() => btn.classList.remove("pulse"), 600)
+    }
+    socket.emit("submit_answer", {
+      duelId: duelRoomId,
+      questionId: duelQuestions[currentQuestion].id,
+      answerId: optionId,
+    })
+  }
+
+  // Recibir resultado de respuesta y avanzar pregunta
+  socket.off("answer_result").on("answer_result", (data) => {
+    setDuelScores(data.scores)
+    // Sonido según respuesta
+    if (data.correctPlayerId === socket.id) {
+      playSound("correct")
+    } else if (data.correctPlayerId) {
+      playSound("wrong")
+    }
+    setTimeout(() => {
+      setSelectedOption(null)
+      setCurrentQuestion((prev) => prev + 1)
+    }, 1200)
+  })
+
+  // Recibir fin de duelo
+  socket.off("duel_end").on("duel_end", (data) => {
+    if (data.winnerId === socket.id) {
+      playSound("win")
+    } else {
+      playSound("lose")
+    }
+    alert(`¡Duelo finalizado! Ganador: ${data.winnerId === socket.id ? 'Tú' : duelOpponent}\nPuntajes: ${JSON.stringify(data.finalScores)}`)
+    setDuelModalOpen(false)
+    setWaitingForOpponent(false)
+    setDuelQuestions([])
+    setCurrentQuestion(0)
+    setSelectedOption(null)
+    setDuelScores({})
+    setDuelRoomId(null)
+    setDuelOpponent("")
+  })
+
+  // Modal de preguntas
+  const renderDuelModal = () => {
+    if (waitingForOpponent) {
+      return (
+        <div className="duel-modal">
+          <div className="modal-content">
+            <h2 style={{ color: '#3b82f6', marginBottom: '1.5rem' }}>Esperando a otro participante...</h2>
+            <p style={{ fontSize: '1.1rem', color: '#222' }}>Cuando otro estudiante se una, comenzará el duelo.</p>
+            <div style={{ marginTop: '2rem' }}>
+              <span className="answer-info">⏳</span>
+            </div>
+          </div>
+        </div>
+      )
+    }
+    if (!duelModalOpen || duelQuestions.length === 0) return null
+    const q = duelQuestions[currentQuestion]
+    return (
+      <div className="duel-modal">
+        <div className="modal-content">
+          <h2 style={{marginBottom: '1.2rem', color: '#3b82f6'}}>Pregunta {currentQuestion + 1} de {duelQuestions.length}</h2>
+          <h3 style={{marginBottom: '1rem', color: '#10b981'}}>VS {duelOpponent}</h3>
+          <p className="question-text">{q.text}</p>
+          <div className="options-list">
+            {q.options.map((opt) => (
+              <button
+                key={opt.id}
+                className={selectedOption === opt.id ? "selected" : ""}
+                style={{
+                  background: selectedOption === opt.id ? '#3b82f6' : '#f3f4f6',
+                  color: selectedOption === opt.id ? '#fff' : '#222',
+                  border: 'none',
+                  cursor: selectedOption ? 'not-allowed' : 'pointer',
+                  fontWeight: '500',
+                }}
+                onClick={() => handleAnswer(opt.id)}
+                disabled={!!selectedOption}
+              >
+                {opt.text}
+              </button>
+            ))}
+          </div>
+          {selectedOption && <p className="answer-info">Esperando al oponente...</p>}
+          <div style={{marginTop: '1rem', fontWeight: 'bold', color: '#10b981'}}>
+            Puntaje actual: {duelScores && duelScores[socket?.id] ? duelScores[socket.id] : 0}
+          </div>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -66,7 +209,7 @@ const Duels = () => {
         <div className="duels-section">
           <div className="section-header">
             <h2>🔄 Duelos Activos</h2>
-            <Button variant="primary" size="small">
+            <Button variant="primary" size="small" onClick={handleStartDuel}>
               Nuevo Duelo
             </Button>
           </div>
@@ -180,7 +323,8 @@ const Duels = () => {
           </div>
         )}
       </div>
-    </div>
+  {renderDuelModal()}
+  </div>
   )
 }
 

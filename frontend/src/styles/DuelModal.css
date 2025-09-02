@@ -1,0 +1,62 @@
+.duel-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0,0,0,0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  animation: fadeInModal 0.4s;
+}
+
+@keyframes fadeInModal {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.modal-content {
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+  padding: 2.5rem 2rem;
+  min-width: 340px;
+  max-width: 420px;
+  text-align: center;
+  animation: scaleInModal 0.3s;
+}
+
+@keyframes scaleInModal {
+  from { transform: scale(0.8); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+.question-text {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 2rem;
+  color: #222;
+}
+
+.options-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.options-list button {
+  font-size: 1.1rem;
+  padding: 0.75rem 1.5rem;
+  border-radius: 12px;
+  transition: background 0.2s, color 0.2s;
+}
+
+.answer-info {
+  margin-top: 1rem;
+  font-size: 1rem;
+  color: #3b82f6;
+  font-weight: 500;
+}

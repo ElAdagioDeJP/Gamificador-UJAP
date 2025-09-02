@@ -1,0 +1,102 @@
+[
+  {
+    "id": 1,
+    "text": "¿Cuál es la capital de Francia?",
+    "options": [
+      { "id": 1, "text": "Madrid", "isCorrect": false },
+      { "id": 2, "text": "París", "isCorrect": true },
+      { "id": 3, "text": "Roma", "isCorrect": false },
+      { "id": 4, "text": "Berlín", "isCorrect": false }
+    ]
+  },
+  {
+    "id": 2,
+    "text": "¿Quién escribió Cien años de soledad?",
+    "options": [
+      { "id": 5, "text": "Gabriel García Márquez", "isCorrect": true },
+      { "id": 6, "text": "Mario Vargas Llosa", "isCorrect": false },
+      { "id": 7, "text": "Julio Cortázar", "isCorrect": false },
+      { "id": 8, "text": "Isabel Allende", "isCorrect": false }
+    ]
+  },
+  {
+    "id": 3,
+    "text": "¿Cuál es la salida de: console.log(typeof null);",
+    "options": [
+      { "id": 9, "text": "\"object\"", "isCorrect": true },
+      { "id": 10, "text": "\"null\"", "isCorrect": false },
+      { "id": 11, "text": "\"undefined\"", "isCorrect": false },
+      { "id": 12, "text": "\"string\"", "isCorrect": false }
+    ]
+  },
+  {
+    "id": 4,
+    "text": "¿Cuál es la derivada de f(x) = x^2?",
+    "options": [
+      { "id": 13, "text": "2x", "isCorrect": true },
+      { "id": 14, "text": "x", "isCorrect": false },
+      { "id": 15, "text": "x^2", "isCorrect": false },
+      { "id": 16, "text": "1", "isCorrect": false }
+    ]
+  },
+  {
+    "id": 5,
+    "text": "¿Cuál es el valor de la expresión: (true && false) || true?",
+    "options": [
+      { "id": 17, "text": "true", "isCorrect": true },
+      { "id": 18, "text": "false", "isCorrect": false },
+      { "id": 19, "text": "undefined", "isCorrect": false },
+      { "id": 20, "text": "null", "isCorrect": false }
+    ]
+  },
+  {
+    "id": 6,
+    "text": "¿Cuál es la complejidad temporal promedio de QuickSort?",
+    "options": [
+      { "id": 21, "text": "O(n log n)", "isCorrect": true },
+      { "id": 22, "text": "O(n^2)", "isCorrect": false },
+      { "id": 23, "text": "O(log n)", "isCorrect": false },
+      { "id": 24, "text": "O(n)", "isCorrect": false }
+    ]
+  },
+  {
+    "id": 7,
+    "text": "¿Qué protocolo se utiliza para el envío seguro de correos electrónicos?",
+    "options": [
+      { "id": 25, "text": "SMTPS", "isCorrect": true },
+      { "id": 26, "text": "SMTP", "isCorrect": false },
+      { "id": 27, "text": "POP3", "isCorrect": false },
+      { "id": 28, "text": "IMAP", "isCorrect": false }
+    ]
+  },
+  {
+    "id": 8,
+    "text": "¿Cuál es el objetivo principal de la normalización en bases de datos?",
+    "options": [
+      { "id": 29, "text": "Eliminar redundancia de datos", "isCorrect": true },
+      { "id": 30, "text": "Aumentar la velocidad de las consultas", "isCorrect": false },
+      { "id": 31, "text": "Mejorar la seguridad", "isCorrect": false },
+      { "id": 32, "text": "Facilitar la replicación", "isCorrect": false }
+    ]
+  },
+  {
+    "id": 9,
+    "text": "¿Qué algoritmo se utiliza en inteligencia artificial para encontrar el camino más corto en un grafo?",
+    "options": [
+      { "id": 33, "text": "Dijkstra", "isCorrect": true },
+      { "id": 34, "text": "Kruskal", "isCorrect": false },
+      { "id": 35, "text": "Prim", "isCorrect": false },
+      { "id": 36, "text": "Backtracking", "isCorrect": false }
+    ]
+  },
+  {
+    "id": 10,
+    "text": "¿Cuál de los siguientes es un ataque de seguridad informática basado en la suplantación de identidad?",
+    "options": [
+      { "id": 37, "text": "Phishing", "isCorrect": true },
+      { "id": 38, "text": "DDoS", "isCorrect": false },
+      { "id": 39, "text": "Ransomware", "isCorrect": false },
+      { "id": 40, "text": "SQL Injection", "isCorrect": false }
+    ]
+  }
+]

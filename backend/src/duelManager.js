@@ -14,27 +14,22 @@ const waitingPlayers = [];
 const activeDuels = new Map();
 
 async function getRandomQuestions(numQuestions = 5) {
-  // Obtiene preguntas con 4 opciones cada una
-  const preguntas = await PreguntaDuelo.findAll({
-    order: db.sequelize.random(),
-    limit: numQuestions,
-    include: [{
-      model: RespuestaDuelo,
-      as: 'opciones',
-      required: true,
-      limit: 4
-    }]
-  });
-  // Formatea para enviar al frontend
-  return preguntas.map(p => ({
-    id: p.id_pregunta,
-    text: p.enunciado,
-    options: p.opciones.map(o => ({
-      id: o.id_respuesta,
-      text: o.texto_respuesta,
-      isCorrect: o.es_correcta // Solo para backend
-    }))
-  }));
+  // Leer preguntas desde archivo JSON
+  const fs = require('fs');
+  const path = require('path');
+  const questionsPath = path.join(__dirname, 'questions.json');
+  let questions = [];
+  try {
+    const data = fs.readFileSync(questionsPath, 'utf8');
+    questions = JSON.parse(data);
+  } catch (err) {
+    console.error('Error leyendo questions.json:', err);
+  }
+  // Selecciona preguntas aleatorias
+  const shuffled = questions.sort(() => 0.5 - Math.random());
+  const selected = shuffled.slice(0, numQuestions);
+  console.log('Preguntas seleccionadas:', JSON.stringify(selected, null, 2));
+  return selected;
 }
 
 function setupDuelSocket(io) {

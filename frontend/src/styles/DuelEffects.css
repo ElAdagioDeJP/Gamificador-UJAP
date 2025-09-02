@@ -1,0 +1,9 @@
+.pulse {
+  animation: pulseEffect 0.5s;
+}
+
+@keyframes pulseEffect {
+  0% { transform: scale(1); box-shadow: 0 0 0 0 #3b82f6; }
+  50% { transform: scale(1.12); box-shadow: 0 0 16px 4px #3b82f6; }
+  100% { transform: scale(1); box-shadow: 0 0 0 0 #3b82f6; }
+}
