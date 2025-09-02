@@ -11,8 +11,9 @@ function auth(required = true) {
     }
 
     try {
-      const payload = jwt.verify(token, process.env.JWT_SECRET);
-      req.user = { id: payload.id, role: payload.role };
+  const payload = jwt.verify(token, process.env.JWT_SECRET);
+  // Support both 'role' and 'rol' in payload
+  req.user = { id: payload.id, role: payload.role || payload.rol };
       next();
     } catch (e) {
       return res.status(401).json({ success: false, message: 'Invalid token' });

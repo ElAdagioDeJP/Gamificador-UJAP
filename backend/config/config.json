@@ -1,5 +1,6 @@
 {
   "development": {
+    "use_env_variable": "DATABASE_URL",
     "username": "root",
     "password": "",
     "database": "studybooster_db",
@@ -8,6 +9,7 @@
     "logging": false
   },
   "test": {
+    "use_env_variable": "DATABASE_URL",
     "username": "root",
     "password": "",
     "database": "studybooster_db_test",
@@ -16,6 +18,7 @@
     "logging": false
   },
   "production": {
+    "use_env_variable": "DATABASE_URL",
     "username": "root",
     "password": "",
     "database": "studybooster_db",

@@ -76,14 +76,14 @@ export const authService = {
       method: 'POST',
       body: payload,
     })
-    const user = {
+  const user = {
       id: data.user.id_usuario,
       email: data.user.email_institucional,
       name: data.user.nombre_completo,
       avatar: "/placeholder.svg?height=100&width=100",
       university: payload.university,
       career: payload.career,
-    rol: (data.user.rol === 'user' ? 'estudiante' : data.user.rol) || userData.rol || 'estudiante',
+  rol: (data.user.rol === 'user' ? 'estudiante' : data.user.rol) || userData.rol || 'estudiante',
     }
     return { user, token: data.token }
   },
@@ -92,14 +92,14 @@ export const authService = {
     const token = localStorage.getItem('token')
     if (!token) throw new Error('No token found')
     const { data } = await request('/auth/me', { token })
-    return {
+  return {
       id: data.user.id_usuario,
       email: data.user.email_institucional,
       name: data.user.nombre_completo,
       avatar: "/placeholder.svg?height=100&width=100",
       university: data.user.university || "",
       career: data.user.career || "",
-    rol: (data.user.rol === 'user' ? 'estudiante' : data.user.rol) || 'estudiante',
+  rol: (data.user.rol === 'user' ? 'estudiante' : data.user.rol) || 'estudiante',
     }
   },
 }
