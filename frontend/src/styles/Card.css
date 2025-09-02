@@ -1,0 +1,206 @@
+.card {
+  background: var(--pixel-bg-card);
+  border: var(--pixel-border);
+  box-shadow: var(--pixel-shadow);
+  overflow: hidden;
+  transition: var(--pixel-transition);
+  position: relative;
+  font-family: "Press Start 2P", monospace;
+  border-radius: 8px;
+}
+
+.card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--pixel-blue), var(--pixel-purple), var(--pixel-green), var(--pixel-yellow));
+}
+
+.card:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 6px 6px 0px rgba(0, 0, 0, 0.4);
+}
+
+.card-header {
+  padding: 16px 16px 0 16px;
+  position: relative;
+}
+
+.card-title {
+  font-family: "Press Start 2P", monospace;
+  font-size: 12px;
+  font-weight: normal;
+  color: var(--pixel-text-primary);
+  margin-bottom: 8px;
+  line-height: 1.4;
+  text-shadow: 1px 1px 0px rgba(255, 255, 255, 0.8);
+}
+
+.card-subtitle {
+  font-family: "Press Start 2P", monospace;
+  font-size: 8px;
+  color: var(--pixel-text-secondary);
+  margin: 0;
+  line-height: 1.4;
+}
+
+.card-content {
+  padding: 16px;
+}
+
+.card-header + .card-content {
+  padding-top: 12px;
+}
+
+/* Variantes pixel para cards */
+.card-achievement {
+  background: linear-gradient(135deg, var(--pixel-yellow-light) 0%, var(--pixel-bg-card) 100%);
+  border-color: var(--pixel-yellow-dark);
+  position: relative;
+  overflow: hidden;
+}
+
+.card-achievement::before {
+  background: linear-gradient(90deg, var(--pixel-yellow), var(--pixel-orange));
+}
+
+.card-achievement::after {
+  content: "⭐";
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  font-size: 16px;
+  animation: pixelTwinkle 2s ease-in-out infinite;
+}
+
+@keyframes pixelTwinkle {
+  0%,
+  100% {
+    transform: scale(1) rotate(0deg);
+    opacity: 0.7;
+  }
+  50% {
+    transform: scale(1.2) rotate(180deg);
+    opacity: 1;
+  }
+}
+
+.card-primary {
+  border-color: var(--pixel-blue-dark);
+  background: linear-gradient(135deg, var(--pixel-blue-light) 0%, var(--pixel-bg-card) 100%);
+}
+
+.card-primary::before {
+  background: var(--pixel-blue);
+}
+
+.card-success {
+  border-color: var(--pixel-green-dark);
+  background: linear-gradient(135deg, var(--pixel-green-light) 0%, var(--pixel-bg-card) 100%);
+}
+
+.card-success::before {
+  background: var(--pixel-green);
+}
+
+.card-warning {
+  border-color: var(--pixel-orange-dark);
+  background: linear-gradient(135deg, var(--pixel-orange-light) 0%, var(--pixel-bg-card) 100%);
+}
+
+.card-warning::before {
+  background: var(--pixel-orange);
+}
+
+.card-danger {
+  border-color: var(--pixel-red-dark);
+  background: linear-gradient(135deg, var(--pixel-red-light) 0%, var(--pixel-bg-card) 100%);
+}
+
+.card-danger::before {
+  background: var(--pixel-red);
+}
+
+.card-purple {
+  background: linear-gradient(135deg, var(--pixel-purple-light) 0%, var(--pixel-bg-card) 100%);
+  border-color: var(--pixel-purple-dark);
+}
+
+.card-purple::before {
+  background: var(--pixel-purple);
+}
+
+/* Efectos especiales */
+.card-interactive {
+  cursor: pointer;
+  transition: var(--pixel-transition);
+}
+
+.card-interactive:hover {
+  transform: translate(-3px, -3px);
+  box-shadow: 8px 8px 0px rgba(0, 0, 0, 0.4);
+}
+
+.card-interactive:active {
+  transform: translate(1px, 1px);
+  box-shadow: 3px 3px 0px rgba(0, 0, 0, 0.4);
+}
+
+.card-glow {
+  position: relative;
+}
+
+.card-glow::after {
+  content: "";
+  position: absolute;
+  top: -4px;
+  left: -4px;
+  right: -4px;
+  bottom: -4px;
+  background: linear-gradient(45deg, var(--pixel-yellow), var(--pixel-orange), var(--pixel-red), var(--pixel-purple));
+  z-index: -1;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.card-glow:hover::after {
+  opacity: 0.7;
+  animation: pixelPulse 1s infinite;
+}
+
+/* Texturas para diferentes tipos de cards */
+.card-grass {
+  background: linear-gradient(135deg, var(--pixel-green-light) 0%, var(--pixel-bg-card) 100%),
+    repeating-linear-gradient(
+      45deg,
+      transparent,
+      transparent 2px,
+      rgba(34, 197, 94, 0.1) 2px,
+      rgba(34, 197, 94, 0.1) 4px
+    );
+}
+
+.card-stone {
+  background: linear-gradient(135deg, #9ca3af 0%, var(--pixel-bg-card) 100%),
+    repeating-linear-gradient(
+      90deg,
+      transparent,
+      transparent 3px,
+      rgba(107, 114, 128, 0.1) 3px,
+      rgba(107, 114, 128, 0.1) 6px
+    );
+}
+
+.card-wood {
+  background: linear-gradient(135deg, #a16207 0%, var(--pixel-bg-card) 100%),
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 4px,
+      rgba(146, 64, 14, 0.1) 4px,
+      rgba(146, 64, 14, 0.1) 8px
+    );
+}

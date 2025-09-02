@@ -1,0 +1,366 @@
+@import url("https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap");
+
+:root {
+  /* Paleta de colores pixel art inspirada en juegos retro */
+  --pixel-bg-primary: #2a1810;
+  --pixel-bg-secondary: #3d2817;
+  --pixel-bg-light: #f4e4bc;
+  --pixel-bg-card: #faf0e6;
+
+  /* Colores principales estilo pixel */
+  --pixel-blue-dark: #1e3a8a;
+  --pixel-blue: #3b82f6;
+  --pixel-blue-light: #93c5fd;
+  --pixel-green-dark: #166534;
+  --pixel-green: #22c55e;
+  --pixel-green-light: #86efac;
+  --pixel-yellow-dark: #ca8a04;
+  --pixel-yellow: #eab308;
+  --pixel-yellow-light: #fde047;
+  --pixel-red-dark: #991b1b;
+  --pixel-red: #ef4444;
+  --pixel-red-light: #fca5a5;
+  --pixel-purple-dark: #581c87;
+  --pixel-purple: #a855f7;
+  --pixel-purple-light: #c4b5fd;
+  --pixel-orange-dark: #9a3412;
+  --pixel-orange: #f97316;
+  --pixel-orange-light: #fdba74;
+
+  /* Colores de texto pixel */
+  --pixel-text-primary: #1c1917;
+  --pixel-text-secondary: #57534e;
+  --pixel-text-light: #a8a29e;
+  --pixel-text-white: #fafaf9;
+
+  /* Sombras pixel art */
+  --pixel-shadow-sm: 2px 2px 0px rgba(0, 0, 0, 0.3);
+  --pixel-shadow: 4px 4px 0px rgba(0, 0, 0, 0.3);
+  --pixel-shadow-lg: 6px 6px 0px rgba(0, 0, 0, 0.3);
+  --pixel-shadow-xl: 8px 8px 0px rgba(0, 0, 0, 0.3);
+
+  /* Bordes pixel */
+  --pixel-border: 3px solid #1c1917;
+  --pixel-border-light: 2px solid #57534e;
+
+  /* Transiciones suaves para mantener fluidez */
+  --pixel-transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html,
+body {
+  overflow-x: hidden;
+  width: 100%;
+  max-width: 100vw;
+}
+
+body {
+  font-family: "Press Start 2P", monospace;
+  background: linear-gradient(135deg, #4c1d95 0%, #1e40af 50%, #059669 100%);
+  background-attachment: fixed;
+  color: var(--pixel-text-primary);
+  line-height: 1.6;
+  font-size: 12px;
+  image-rendering: pixelated;
+  image-rendering: -moz-crisp-edges;
+  image-rendering: crisp-edges;
+}
+
+/* Fondo animado con estrellas pixel */
+body::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(2px 2px at 20px 30px, #fbbf24, transparent),
+    radial-gradient(2px 2px at 40px 70px, #f59e0b, transparent),
+    radial-gradient(1px 1px at 90px 40px, #fbbf24, transparent),
+    radial-gradient(1px 1px at 130px 80px, #f59e0b, transparent),
+    radial-gradient(2px 2px at 160px 30px, #fbbf24, transparent);
+  background-repeat: repeat;
+  background-size: 200px 100px;
+  animation: pixelStars 20s linear infinite;
+  pointer-events: none;
+  z-index: -1;
+}
+
+@keyframes pixelStars {
+  from {
+    transform: translateY(0px);
+  }
+  to {
+    transform: translateY(-100px);
+  }
+}
+
+.App {
+  min-height: 100vh;
+  position: relative;
+  width: 100%;
+  overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Tipografía pixel */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: "Press Start 2P", monospace;
+  /* text-shadow: var(--pixel-shadow-sm); */
+  line-height: 1.4;
+}
+
+h1 {
+  font-size: 16px;
+  margin-bottom: 16px;
+}
+h2 {
+  font-size: 14px;
+  margin-bottom: 12px;
+}
+h3 {
+  font-size: 12px;
+  margin-bottom: 8px;
+}
+h4 {
+  font-size: 10px;
+  margin-bottom: 6px;
+}
+
+p,
+span,
+div {
+  font-family: "Press Start 2P", monospace;
+  font-size: 10px;
+  line-height: 1.6;
+}
+
+/* Utilidades pixel */
+.pixel-card {
+  background: var(--pixel-bg-card);
+  border: var(--pixel-border);
+  border-radius: 0;
+  box-shadow: var(--pixel-shadow);
+  position: relative;
+}
+
+.pixel-card::before {
+  content: "";
+  position: absolute;
+  top: -3px;
+  left: -3px;
+  right: -3px;
+  bottom: -3px;
+  background: linear-gradient(45deg, #fbbf24 0%, #f59e0b 100%);
+  z-index: -1;
+  border-radius: 0;
+}
+
+.pixel-button {
+  font-family: "Press Start 2P", monospace;
+  font-size: 10px;
+  padding: 12px 16px;
+  border: var(--pixel-border);
+  border-radius: 0;
+  background: var(--pixel-blue);
+  color: var(--pixel-text-white);
+  cursor: pointer;
+  transition: var(--pixel-transition);
+  text-transform: uppercase;
+  box-shadow: var(--pixel-shadow);
+  position: relative;
+  overflow: hidden;
+}
+
+.pixel-button:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 6px 6px 0px rgba(0, 0, 0, 0.3);
+}
+
+.pixel-button:active {
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0px rgba(0, 0, 0, 0.3);
+}
+
+.pixel-button::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  transition: left 0.5s ease;
+}
+
+.pixel-button:hover::before {
+  left: 100%;
+}
+
+/* Animaciones pixel */
+@keyframes pixelPulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+@keyframes pixelBounce {
+  0%,
+  20%,
+  53%,
+  80%,
+  100% {
+    transform: translateY(0px);
+  }
+  40%,
+  43% {
+    transform: translateY(-8px);
+  }
+  70% {
+    transform: translateY(-4px);
+  }
+}
+
+@keyframes pixelShake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  10%,
+  30%,
+  50%,
+  70%,
+  90% {
+    transform: translateX(-2px);
+  }
+  20%,
+  40%,
+  60%,
+  80% {
+    transform: translateX(2px);
+  }
+}
+
+.animate-pixel-pulse {
+  animation: pixelPulse 2s infinite;
+}
+.animate-pixel-bounce {
+  animation: pixelBounce 1s infinite;
+}
+.animate-pixel-shake {
+  animation: pixelShake 0.5s ease-in-out;
+}
+
+/* Scrollbar pixel solo para body */
+body::-webkit-scrollbar {
+  width: 16px;
+}
+
+body::-webkit-scrollbar-track {
+  background: var(--pixel-bg-secondary);
+  border: 2px solid var(--pixel-text-primary);
+}
+
+body::-webkit-scrollbar-thumb {
+  background: var(--pixel-orange);
+  border: 2px solid var(--pixel-text-primary);
+}
+
+body::-webkit-scrollbar-thumb:hover {
+  background: var(--pixel-orange-dark);
+}
+
+/* Ocultar todos los scrollbars excepto el del body */
+/* *:not(body)::-webkit-scrollbar {
+  display: none;
+}
+
+* {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+} */
+
+body {
+  -ms-overflow-style: auto;
+  scrollbar-width: auto;
+}
+
+/* Responsive pixel */
+@media (max-width: 768px) {
+  body {
+    font-size: 10px;
+  }
+  h1 {
+    font-size: 14px;
+  }
+  h2 {
+    font-size: 12px;
+  }
+  h3 {
+    font-size: 10px;
+  }
+  p,
+  span,
+  div {
+    font-size: 8px;
+  }
+}
+
+@media (max-width: 480px) {
+  body {
+    font-size: 8px;
+  }
+  h1 {
+    font-size: 12px;
+  }
+  h2 {
+    font-size: 10px;
+  }
+  h3 {
+    font-size: 8px;
+  }
+  p,
+  span,
+  div {
+    font-size: 7px;
+  }
+}
+
+/* Efectos especiales para elementos interactivos */
+.pixel-glow {
+  position: relative;
+}
+
+.pixel-glow::after {
+  content: "";
+  position: absolute;
+  top: -4px;
+  left: -4px;
+  right: -4px;
+  bottom: -4px;
+  background: linear-gradient(45deg, var(--pixel-yellow), var(--pixel-orange), var(--pixel-red), var(--pixel-purple));
+  z-index: -1;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.pixel-glow:hover::after {
+  opacity: 0.7;
+  animation: pixelPulse 1s infinite;
+}

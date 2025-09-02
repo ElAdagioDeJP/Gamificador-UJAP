@@ -1,0 +1,293 @@
+/* Botón compacto para demo */
+.demo-btn {
+  font-family: "Press Start 2P", monospace;
+  font-size: 8px;
+  padding: 6px 10px;
+  border: var(--pixel-border);
+  background: var(--pixel-blue);
+  color: var(--pixel-text-white);
+  cursor: pointer;
+  transition: var(--pixel-transition);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  box-shadow: var(--pixel-shadow-sm);
+  margin-left: 8px;
+}
+.demo-btn:hover {
+  background: var(--pixel-blue-dark);
+  transform: translate(-1px, -1px);
+  box-shadow: 3px 3px 0px rgba(0, 0, 0, 0.2);
+}
+.demo-btn:active {
+  transform: translate(1px, 1px);
+  box-shadow: 1px 1px 0px rgba(0, 0, 0, 0.2);
+}
+.demo-btn:disabled {
+  background: var(--pixel-text-light);
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: var(--pixel-shadow-sm);
+}
+.auth-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(135deg, #4c1d95 0%, #1e40af 50%, #059669 100%);
+}
+
+/* Fondo pixel art para login */
+.auth-container::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  /* Paisaje pixel completo */
+  /* Montañas */
+  background: linear-gradient(transparent 60%, #6b7280 60%, #4b5563 65%, transparent 65%),
+    linear-gradient(transparent 65%, #4b5563 65%, #374151 70%, transparent 70%), /* Nubes */
+    radial-gradient(ellipse 60px 30px at 20% 25%, rgba(255, 255, 255, 0.8) 40%, transparent 50%),
+    radial-gradient(ellipse 80px 40px at 70% 20%, rgba(255, 255, 255, 0.6) 40%, transparent 50%),
+    radial-gradient(ellipse 50px 25px at 85% 30%, rgba(255, 255, 255, 0.7) 40%, transparent 50%), /* Árboles */
+    linear-gradient(transparent 70%, #166534 70%, #15803d 75%, transparent 75%),
+    linear-gradient(transparent 75%, #22c55e 75%, #16a34a 80%, transparent 80%), /* Sol */
+    radial-gradient(circle 40px at 80% 30%, #fbbf24 40%, transparent 50%), /* Partículas flotantes */
+    radial-gradient(circle 2px at 30% 40%, #fbbf24, transparent),
+    radial-gradient(circle 1px at 60% 35%, #f59e0b, transparent),
+    radial-gradient(circle 2px at 25% 60%, #fbbf24, transparent),
+    radial-gradient(circle 1px at 75% 55%, #f59e0b, transparent);
+  background-size: 100% 100%, 100% 100%, 200px 100px, 250px 120px, 180px 90px, 100% 100%, 100% 100%, 120px 120px, 150px
+    150px, 180px 180px, 160px 160px, 200px 200px;
+  animation: pixelLandscape 15s ease-in-out infinite;
+  opacity: 0.3;
+  z-index: 0;
+}
+
+@keyframes pixelLandscape {
+  0%,
+  100% {
+    transform: translateX(0px) translateY(0px);
+  }
+  33% {
+    transform: translateX(-10px) translateY(-5px);
+  }
+  66% {
+    transform: translateX(5px) translateY(-3px);
+  }
+}
+
+.auth-card {
+  background: var(--pixel-bg-card);
+  border: var(--pixel-border);
+  box-shadow: var(--pixel-shadow-xl);
+  padding: 32px;
+  width: 100%;
+  max-width: 400px;
+  position: relative;
+  z-index: 1;
+}
+
+.auth-header {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.auth-header h1 {
+  font-family: "Press Start 2P", monospace;
+  font-size: 18px;
+  font-weight: normal;
+  color: var(--pixel-text-primary);
+  margin-bottom: 8px;
+  text-shadow: 2px 2px 0px rgba(0, 0, 0, 0.1);
+}
+
+.auth-header p {
+  font-family: "Press Start 2P", monospace;
+  font-size: 8px;
+  color: var(--pixel-text-secondary);
+  font-weight: normal;
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.form-group label {
+  font-family: "Press Start 2P", monospace;
+  font-size: 8px;
+  font-weight: normal;
+  color: var(--pixel-text-primary);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.form-input {
+  padding: 12px;
+  border: var(--pixel-border-light);
+  background: var(--pixel-bg-light);
+  font-family: "Press Start 2P", monospace;
+  font-size: 8px;
+  color: var(--pixel-text-primary);
+  transition: var(--pixel-transition);
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: var(--pixel-blue);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  transform: translate(-1px, -1px);
+}
+
+.form-input::placeholder {
+  color: var(--pixel-text-light);
+  font-family: "Press Start 2P", monospace;
+  font-size: 7px;
+}
+
+.auth-button {
+  font-family: "Press Start 2P", monospace;
+  font-size: 10px;
+  padding: 14px 20px;
+  border: var(--pixel-border);
+  background: var(--pixel-blue);
+  color: var(--pixel-text-white);
+  cursor: pointer;
+  transition: var(--pixel-transition);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  box-shadow: var(--pixel-shadow);
+  margin-top: 8px;
+}
+
+.auth-button:hover {
+  background: var(--pixel-blue-dark);
+  transform: translate(-2px, -2px);
+  box-shadow: 6px 6px 0px rgba(0, 0, 0, 0.3);
+}
+
+.auth-button:active {
+  transform: translate(1px, 1px);
+  box-shadow: 2px 2px 0px rgba(0, 0, 0, 0.3);
+}
+
+.auth-button:disabled {
+  background: var(--pixel-text-light);
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: var(--pixel-shadow-sm);
+}
+
+.auth-footer {
+  text-align: center;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: var(--pixel-border-light);
+}
+
+.auth-footer p {
+  font-family: "Press Start 2P", monospace;
+  font-size: 8px;
+  color: var(--pixel-text-secondary);
+  margin-bottom: 8px;
+  font-weight: normal;
+}
+
+.auth-link {
+  font-family: "Press Start 2P", monospace;
+  font-size: 8px;
+  color: var(--pixel-blue);
+  text-decoration: none;
+  font-weight: normal;
+  transition: var(--pixel-transition);
+}
+
+.auth-link:hover {
+  color: var(--pixel-blue-dark);
+  text-shadow: 1px 1px 0px rgba(0, 0, 0, 0.1);
+}
+
+.error-message {
+  background: linear-gradient(135deg, var(--pixel-red-light) 0%, #fecaca 100%);
+  color: var(--pixel-red-dark);
+  padding: 12px;
+  border: 2px solid var(--pixel-red-dark);
+  font-family: "Press Start 2P", monospace;
+  font-size: 8px;
+  text-align: center;
+  margin-bottom: 16px;
+  font-weight: normal;
+}
+
+.role-selector {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.role-option {
+  flex: 1;
+  padding: 12px;
+  border: var(--pixel-border-light);
+  background: var(--pixel-bg-light);
+  font-family: "Press Start 2P", monospace;
+  font-size: 8px;
+  text-align: center;
+  cursor: pointer;
+  transition: var(--pixel-transition);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.role-option.active {
+  background: var(--pixel-blue);
+  color: var(--pixel-text-white);
+  border-color: var(--pixel-blue-dark);
+  box-shadow: var(--pixel-shadow-sm);
+}
+
+.role-option:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 2px 2px 0px rgba(0, 0, 0, 0.1);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .auth-container {
+    padding: 16px;
+  }
+
+  .auth-card {
+    padding: 24px;
+  }
+
+  .auth-header h1 {
+    font-size: 16px;
+  }
+
+  .role-selector {
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 480px) {
+  .auth-card {
+    padding: 20px;
+  }
+
+  .auth-header h1 {
+    font-size: 14px;
+  }
+}

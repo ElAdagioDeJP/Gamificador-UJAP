@@ -1,0 +1,446 @@
+.dashboard {
+  max-width: 1100px;
+  margin: 0 auto;
+  animation: pixelFadeIn 0.8s ease-out;
+  position: relative;
+  padding-top: 64px;
+}
+
+@keyframes pixelFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.dashboard-header {
+  margin-bottom: 20px;
+  text-align: center;
+  padding: 20px;
+  background: linear-gradient(135deg, var(--pixel-purple-light) 0%, var(--pixel-blue-light) 100%);
+  border: var(--pixel-border);
+  box-shadow: var(--pixel-shadow);
+  position: relative;
+  overflow: hidden;
+  border-radius: 8px;
+}
+
+/* Fondo pixel art para dashboard header */
+.dashboard-header::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  /* Castillo pixel */
+  background: linear-gradient(transparent 40%, #6b7280 40%, #4b5563 45%, transparent 45%),
+    linear-gradient(transparent 35%, #6b7280 35%, #4b5563 40%, transparent 40%), /* Torres */
+    radial-gradient(ellipse 20px 40px at 20% 60%, #6b7280 40%, transparent 50%),
+    radial-gradient(ellipse 20px 40px at 80% 60%, #6b7280 40%, transparent 50%), /* Nubes */
+    radial-gradient(ellipse 40px 20px at 30% 20%, rgba(255, 255, 255, 0.8) 40%, transparent 50%),
+    radial-gradient(ellipse 60px 30px at 70% 15%, rgba(255, 255, 255, 0.6) 40%, transparent 50%);
+  background-size: 100% 100%, 100% 100%, 200px 100px, 200px 100px, 150px 80px, 200px 100px;
+  animation: pixelCastle 12s ease-in-out infinite;
+  opacity: 0.3;
+  z-index: 0;
+}
+
+@keyframes pixelCastle {
+  0%,
+  100% {
+    transform: translateX(0px);
+  }
+  50% {
+    transform: translateX(-10px);
+  }
+}
+
+.dashboard-header::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 6px;
+  background: repeating-linear-gradient(
+    90deg,
+    var(--pixel-yellow) 0px,
+    var(--pixel-yellow) 8px,
+    var(--pixel-orange) 8px,
+    var(--pixel-orange) 16px,
+    var(--pixel-red) 16px,
+    var(--pixel-red) 24px,
+    var(--pixel-purple) 24px,
+    var(--pixel-purple) 32px
+  );
+  animation: pixelRainbow 3s linear infinite;
+  z-index: 1;
+}
+
+.dashboard-header h1 {
+  font-family: "Press Start 2P", monospace;
+  font-size: 16px;
+  font-weight: normal;
+  color: var(--pixel-text-primary);
+  margin-bottom: 8px;
+  line-height: 1.4;
+  position: relative;
+  z-index: 2;
+}
+
+.dashboard-header p {
+  color: var(--pixel-text-secondary);
+  font-family: "Press Start 2P", monospace;
+  font-size: 10px;
+  font-weight: normal;
+  position: relative;
+  z-index: 2;
+}
+
+.dashboard-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.stat-card {
+  padding: 20px;
+  transition: var(--pixel-transition);
+  position: relative;
+  overflow: hidden;
+  border-radius: 8px;
+}
+
+.stat-card .card-content {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 0;
+}
+
+.stat-icon {
+  font-size: 32px;
+  filter: drop-shadow(2px 2px 0px rgba(0, 0, 0, 0.3));
+  animation: pixelFloat 3s ease-in-out infinite;
+}
+
+@keyframes pixelFloat {
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+.stat-content h3 {
+  font-family: "Press Start 2P", monospace;
+  font-size: 18px;
+  font-weight: normal;
+  margin-bottom: 4px;
+  line-height: 1.2;
+  text-shadow: 1px 1px 0px rgba(0, 0, 0, 0.2);
+}
+
+.stat-content p {
+  font-family: "Press Start 2P", monospace;
+  font-size: 8px;
+  margin: 0;
+  font-weight: normal;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+/* Colores específicos para cada stat con tema pixel */
+.level-card {
+  background: linear-gradient(135deg, var(--pixel-orange) 0%, var(--pixel-orange-dark) 100%);
+  border-color: var(--pixel-orange-dark);
+}
+
+.level-card .stat-content h3,
+.level-card .stat-content p {
+  color: var(--pixel-text-white);
+  text-shadow: 2px 2px 0px rgba(0, 0, 0, 0.5);
+}
+
+.level-card::before {
+  background: var(--pixel-yellow);
+}
+
+.level-progress {
+  margin-top: 12px;
+}
+
+.progress-bar {
+  background-color: rgba(0, 0, 0, 0.3);
+  height: 8px;
+  overflow: hidden;
+  margin-bottom: 6px;
+  border: 2px solid rgba(0, 0, 0, 0.5);
+  position: relative;
+}
+
+.progress-fill {
+  background: repeating-linear-gradient(
+    90deg,
+    var(--pixel-yellow) 0px,
+    var(--pixel-yellow) 4px,
+    var(--pixel-yellow-light) 4px,
+    var(--pixel-yellow-light) 8px
+  );
+  height: 100%;
+  transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+}
+
+.progress-fill::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  animation: pixelShimmer 2s ease-in-out infinite;
+}
+
+@keyframes pixelShimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.level-progress span {
+  font-family: "Press Start 2P", monospace;
+  font-size: 8px;
+  opacity: 0.9;
+  font-weight: normal;
+}
+
+.points-card {
+  background: linear-gradient(135deg, var(--pixel-blue) 0%, var(--pixel-blue-dark) 100%);
+  border-color: var(--pixel-blue-dark);
+}
+
+.points-card .stat-content h3,
+.points-card .stat-content p {
+  color: var(--pixel-text-white);
+  text-shadow: 2px 2px 0px rgba(0, 0, 0, 0.5);
+}
+
+.points-card::before {
+  background: var(--pixel-blue-light);
+}
+
+.streak-card {
+  background: linear-gradient(135deg, var(--pixel-red) 0%, var(--pixel-red-dark) 100%);
+  border-color: var(--pixel-red-dark);
+}
+
+.streak-card .stat-content h3,
+.streak-card .stat-content p {
+  color: var(--pixel-text-white);
+  text-shadow: 2px 2px 0px rgba(0, 0, 0, 0.5);
+}
+
+.streak-card::before {
+  background: var(--pixel-red-light);
+}
+
+.missions-card {
+  background: linear-gradient(135deg, var(--pixel-green) 0%, var(--pixel-green-dark) 100%);
+  border-color: var(--pixel-green-dark);
+}
+
+.missions-card .stat-content h3,
+.missions-card .stat-content p {
+  color: var(--pixel-text-white);
+  text-shadow: 2px 2px 0px rgba(0, 0, 0, 0.5);
+}
+
+.missions-card::before {
+  background: var(--pixel-green-light);
+}
+
+.dashboard-content {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 20px;
+  margin-bottom: 24px;
+}
+
+.daily-missions .missions-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.mission-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 16px;
+  background: var(--pixel-bg-light);
+  border: var(--pixel-border-light);
+  transition: var(--pixel-transition);
+  position: relative;
+}
+
+.mission-item::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: var(--pixel-blue);
+}
+
+.mission-item:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 4px 4px 0px rgba(0, 0, 0, 0.2);
+  border-color: var(--pixel-blue);
+}
+
+.mission-info h4 {
+  font-family: "Press Start 2P", monospace;
+  font-weight: normal;
+  color: var(--pixel-text-primary);
+  margin-bottom: 6px;
+  font-size: 10px;
+}
+
+.mission-info p {
+  color: var(--pixel-text-secondary);
+  font-family: "Press Start 2P", monospace;
+  font-size: 8px;
+  margin-bottom: 8px;
+  line-height: 1.5;
+}
+
+.mission-meta {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.difficulty {
+  font-family: "Press Start 2P", monospace;
+  font-size: 7px;
+  padding: 4px 8px;
+  border: 2px solid;
+  font-weight: normal;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  position: relative;
+}
+
+.difficulty.easy {
+  background: var(--pixel-green-light);
+  color: var(--pixel-green-dark);
+  border-color: var(--pixel-green-dark);
+}
+
+.difficulty.medium {
+  background: var(--pixel-orange-light);
+  color: var(--pixel-orange-dark);
+  border-color: var(--pixel-orange-dark);
+}
+
+.difficulty.hard {
+  background: var(--pixel-red-light);
+  color: var(--pixel-red-dark);
+  border-color: var(--pixel-red-dark);
+}
+
+.points {
+  font-family: "Press Start 2P", monospace;
+  font-size: 7px;
+  font-weight: normal;
+  color: var(--pixel-blue-dark);
+  background: var(--pixel-blue-light);
+  padding: 4px 8px;
+  border: 2px solid var(--pixel-blue-dark);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.mission-deadline {
+  font-family: "Press Start 2P", monospace;
+  font-size: 8px;
+  color: var(--pixel-text-secondary);
+  font-weight: normal;
+}
+
+.no-missions {
+  text-align: center;
+  padding: 32px 20px;
+  background: linear-gradient(135deg, var(--pixel-green-light) 0%, var(--pixel-bg-card) 100%);
+  border: var(--pixel-border);
+  border-color: var(--pixel-green-dark);
+}
+
+.no-missions p {
+  color: var(--pixel-green-dark);
+  font-family: "Press Start 2P", monospace;
+  font-weight: normal;
+  font-size: 12px;
+}
+
+/* Responsive pixel */
+@media (max-width: 1024px) {
+  .dashboard-content {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-header h1 {
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 768px) {
+  .dashboard-stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .dashboard-header {
+    padding: 16px 12px;
+  }
+
+  .dashboard-header h1 {
+    font-size: 12px;
+  }
+
+  .mission-item {
+    flex-direction: column;
+    gap: 12px;
+    align-items: flex-start;
+  }
+
+  .mission-meta {
+    justify-content: space-between;
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .dashboard-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .stat-card .card-content {
+    flex-direction: column;
+    text-align: center;
+    gap: 12px;
+  }
+}

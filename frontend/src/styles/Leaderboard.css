@@ -1,0 +1,471 @@
+.leaderboard {
+  max-width: 1100px;
+  margin: 0 auto;
+  animation: pixelFadeIn 0.6s ease-out;
+  width: 100%;
+  overflow-x: hidden;
+  padding-top: 64px;
+}
+
+.leaderboard-header {
+  margin-bottom: 20px;
+  text-align: center;
+  padding: 20px;
+  background: linear-gradient(135deg, var(--pixel-yellow-light) 0%, var(--pixel-orange-light) 100%);
+  border: var(--pixel-border);
+  box-shadow: var(--pixel-shadow);
+  position: relative;
+  overflow: hidden;
+  border-radius: 8px;
+}
+
+/* Fondo pixel art para leaderboard header */
+.leaderboard-header::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  /* Podio de ganadores */
+  /* Podio central (1er lugar) */
+  background:
+    linear-gradient(transparent 40%, #fbbf24 40%, #f59e0b 50%, transparent 50%),
+    /* Podio izquierdo (2do lugar) */
+    linear-gradient(transparent 50%, #e5e7eb 50%, #d1d5db 60%, transparent 60%),
+    /* Podio derecho (3er lugar) */
+    linear-gradient(transparent 55%, #92400e 55%, #78350f 65%, transparent 65%),
+    /* Trofeos */
+    radial-gradient(circle 15px at 50% 35%, #fbbf24 40%, transparent 50%),
+    radial-gradient(circle 12px at 25% 45%, #e5e7eb 40%, transparent 50%),
+    radial-gradient(circle 10px at 75% 50%, #92400e 40%, transparent 50%),
+    /* Corona del campeón */
+    linear-gradient(transparent 25%, #fbbf24 25%, #f59e0b 30%, transparent 30%),
+    /* Confeti */
+    radial-gradient(circle 2px at 20% 30%, #ef4444, transparent),
+    radial-gradient(circle 1px at 80% 25%, #3b82f6, transparent),
+    radial-gradient(circle 2px at 30% 70%, #22c55e, transparent),
+    radial-gradient(circle 1px at 70% 75%, #8b5cf6, transparent),
+    radial-gradient(circle 2px at 15% 60%, #f59e0b, transparent),
+    radial-gradient(circle 1px at 85% 55%, #ef4444, transparent);
+  background-size: 100% 100%, 100% 100%, 100% 100%, 60px 60px, 60px 60px, 60px 60px, 100% 100%, 80px 80px, 90px 90px,
+    100px 100px, 110px 110px, 85px 85px, 95px 95px;
+  background-position: 0 0, 0 0, 0 0, 50% 35%, 25% 45%, 75% 50%, 0 0, 0 0, 0 0, 0 0, 0 0, 0 0, 0 0;
+  animation: pixelPodium 8s ease-in-out infinite;
+  opacity: 0.3;
+  z-index: 0;
+}
+
+@keyframes pixelPodium {
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+.leaderboard-header::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--pixel-yellow), var(--pixel-orange));
+  z-index: 1;
+}
+
+.leaderboard-header h1 {
+  font-family: "Press Start 2P", monospace;
+  font-size: 16px;
+  font-weight: normal;
+  color: var(--pixel-text-primary);
+  margin-bottom: 8px;
+  line-height: 1.4;
+  position: relative;
+  z-index: 2;
+}
+
+.leaderboard-header p {
+  color: var(--pixel-text-secondary);
+  font-family: "Press Start 2P", monospace;
+  font-size: 10px;
+  font-weight: normal;
+  position: relative;
+  z-index: 2;
+}
+
+.leaderboard-filters {
+  margin-bottom: 20px;
+  display: flex;
+  justify-content: center;
+}
+
+.filter-buttons {
+  display: flex;
+  background: var(--pixel-bg-card);
+  border: var(--pixel-border);
+  padding: 4px;
+  gap: 4px;
+  box-shadow: var(--pixel-shadow);
+}
+
+.filter-btn {
+  padding: 8px 12px;
+  border: none;
+  background: transparent;
+  font-family: "Press Start 2P", monospace;
+  font-size: 8px;
+  font-weight: normal;
+  color: var(--pixel-text-secondary);
+  cursor: pointer;
+  transition: var(--pixel-transition);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.filter-btn:hover {
+  color: var(--pixel-text-primary);
+  background: var(--pixel-bg-light);
+}
+
+.filter-btn.active {
+  background: linear-gradient(135deg, var(--pixel-blue) 0%, var(--pixel-purple) 100%);
+  color: var(--pixel-text-white);
+  box-shadow: var(--pixel-shadow-sm);
+}
+
+.leaderboard-content {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.leaderboard-card {
+  padding: 0;
+  overflow: hidden;
+  background: var(--pixel-bg-card);
+  border: var(--pixel-border);
+  box-shadow: var(--pixel-shadow);
+  border-radius: 8px;
+}
+
+.leaderboard-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.leaderboard-item {
+  display: flex;
+  align-items: center;
+  padding: 16px 20px;
+  border-bottom: var(--pixel-border-light);
+  transition: var(--pixel-transition);
+}
+
+.leaderboard-item:last-child {
+  border-bottom: none;
+}
+
+.leaderboard-item:hover {
+  background: linear-gradient(135deg, var(--pixel-bg-light) 0%, #f9fafb 100%);
+}
+
+.leaderboard-item.current-user {
+  background: linear-gradient(135deg, var(--pixel-blue-light) 0%, var(--pixel-bg-card) 100%);
+  border-left: 4px solid var(--pixel-blue);
+}
+
+.leaderboard-item.rank-gold {
+  background: linear-gradient(135deg, var(--pixel-yellow-light) 0%, var(--pixel-bg-card) 100%);
+  border-left: 4px solid var(--pixel-yellow);
+}
+
+.leaderboard-item.rank-silver {
+  background: linear-gradient(135deg, #f1f5f9 0%, var(--pixel-bg-card) 100%);
+  border-left: 4px solid #64748b;
+}
+
+.leaderboard-item.rank-bronze {
+  background: linear-gradient(135deg, var(--pixel-orange-light) 0%, var(--pixel-bg-card) 100%);
+  border-left: 4px solid var(--pixel-orange);
+}
+
+.rank-position {
+  margin-right: 16px;
+  min-width: 60px;
+  text-align: center;
+}
+
+.rank-icon {
+  font-family: "Press Start 2P", monospace;
+  font-size: 16px;
+  font-weight: normal;
+  filter: drop-shadow(2px 2px 0px rgba(0, 0, 0, 0.2));
+}
+
+.player-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+}
+
+.player-avatar {
+  width: 50px;
+  height: 50px;
+  border: var(--pixel-border-light);
+  background: var(--pixel-bg-light);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  image-rendering: pixelated;
+  box-shadow: var(--pixel-shadow-sm);
+}
+
+.player-details {
+  flex: 1;
+}
+
+.player-name {
+  font-family: "Press Start 2P", monospace;
+  font-size: 10px;
+  font-weight: normal;
+  color: var(--pixel-text-primary);
+  margin: 0 0 4px 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.you-badge {
+  font-family: "Press Start 2P", monospace;
+  font-size: 7px;
+  padding: 2px 6px;
+  background: linear-gradient(135deg, var(--pixel-blue) 0%, var(--pixel-purple) 100%);
+  color: var(--pixel-text-white);
+  border: 2px solid var(--pixel-blue-dark);
+  font-weight: normal;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.player-level {
+  font-family: "Press Start 2P", monospace;
+  font-size: 8px;
+  color: var(--pixel-text-secondary);
+  margin: 0;
+  font-weight: normal;
+}
+
+.player-stats {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.stat-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.stat-value {
+  font-family: "Press Start 2P", monospace;
+  font-size: 12px;
+  font-weight: normal;
+  color: var(--pixel-text-primary);
+}
+
+.stat-label {
+  font-family: "Press Start 2P", monospace;
+  font-size: 7px;
+  color: var(--pixel-text-secondary);
+  font-weight: normal;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.rank-badge {
+  margin-left: 12px;
+}
+
+.badge-text {
+  font-family: "Press Start 2P", monospace;
+  font-size: 7px;
+  padding: 4px 8px;
+  background: linear-gradient(135deg, var(--pixel-orange) 0%, var(--pixel-red) 100%);
+  color: var(--pixel-text-white);
+  border: 2px solid var(--pixel-orange-dark);
+  font-weight: normal;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.current-user-rank {
+  padding: 20px;
+  background: var(--pixel-bg-card);
+  border: var(--pixel-border);
+  box-shadow: var(--pixel-shadow);
+  border-radius: 8px;
+}
+
+.current-rank-header {
+  margin-bottom: 12px;
+}
+
+.current-rank-header h3 {
+  font-family: "Press Start 2P", monospace;
+  font-size: 12px;
+  font-weight: normal;
+  color: var(--pixel-text-primary);
+  margin: 0;
+  text-align: center;
+}
+
+.leaderboard-stats {
+  margin-top: 20px;
+}
+
+.stats-summary {
+  padding: 20px;
+  background: var(--pixel-bg-card);
+  border: var(--pixel-border);
+  box-shadow: var(--pixel-shadow);
+  border-radius: 8px;
+}
+
+.stats-summary h3 {
+  font-family: "Press Start 2P", monospace;
+  font-size: 12px;
+  font-weight: normal;
+  color: var(--pixel-text-primary);
+  margin: 0 0 16px 0;
+  text-align: center;
+}
+
+.global-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+.global-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 16px;
+  background: linear-gradient(135deg, var(--pixel-bg-light) 0%, #f9fafb 100%);
+  border: var(--pixel-border-light);
+  transition: var(--pixel-transition);
+}
+
+.global-stat:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 4px 4px 0px rgba(0, 0, 0, 0.1);
+}
+
+.global-stat .stat-icon {
+  font-size: 24px;
+  filter: drop-shadow(2px 2px 0px rgba(0, 0, 0, 0.2));
+}
+
+.global-stat .stat-info {
+  text-align: center;
+}
+
+.global-stat .stat-info h4 {
+  font-family: "Press Start 2P", monospace;
+  font-size: 16px;
+  font-weight: normal;
+  color: var(--pixel-text-primary);
+  margin: 0 0 4px 0;
+}
+
+.global-stat .stat-info p {
+  font-family: "Press Start 2P", monospace;
+  font-size: 8px;
+  color: var(--pixel-text-secondary);
+  margin: 0;
+  font-weight: normal;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .leaderboard-header h1 {
+    font-size: 14px;
+  }
+
+  .filter-buttons {
+    flex-direction: column;
+    width: 100%;
+    max-width: 300px;
+  }
+
+  .leaderboard-item {
+    padding: 12px;
+  }
+
+  .rank-position {
+    min-width: 50px;
+    margin-right: 12px;
+  }
+
+  .rank-icon {
+    font-size: 14px;
+  }
+
+  .player-info {
+    gap: 8px;
+  }
+
+  .player-avatar {
+    width: 40px;
+    height: 40px;
+  }
+
+  .player-name {
+    font-size: 8px;
+  }
+
+  .player-level {
+    font-size: 7px;
+  }
+
+  .stat-value {
+    font-size: 10px;
+  }
+
+  .global-stats {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .leaderboard-item {
+    flex-direction: column;
+    gap: 12px;
+    text-align: center;
+  }
+
+  .rank-position {
+    margin-right: 0;
+  }
+
+  .player-info {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .player-stats {
+    justify-content: center;
+  }
+}

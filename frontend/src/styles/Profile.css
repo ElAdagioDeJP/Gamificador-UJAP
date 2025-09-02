@@ -1,0 +1,444 @@
+.profile {
+  max-width: 1100px;
+  margin: 0 auto;
+  animation: pixelFadeIn 0.6s ease-out;
+  padding-top: 64px;
+}
+
+.profile-header {
+  margin-bottom: 20px;
+  text-align: center;
+  padding: 20px;
+  background: linear-gradient(135deg, var(--pixel-purple-light) 0%, var(--pixel-blue-light) 100%);
+  border: var(--pixel-border);
+  box-shadow: var(--pixel-shadow);
+  position: relative;
+  overflow: hidden;
+  border-radius: 8px;
+}
+
+/* Fondo pixel art para profile header */
+.profile-header::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  /* Avatar gigante pixel */
+  background: radial-gradient(circle 40px at 50% 60%, #6b7280 30%, transparent 40%),
+    radial-gradient(circle 20px at 45% 50%, #1f2937 40%, transparent 50%),
+    radial-gradient(circle 20px at 55% 50%, #1f2937 40%, transparent 50%), /* Corona */
+    linear-gradient(transparent 30%, #fbbf24 30%, #f59e0b 35%, transparent 35%), /* Estrellas de logros */
+    radial-gradient(circle 3px at 20% 40%, #fbbf24, transparent),
+    radial-gradient(circle 2px at 80% 35%, #f59e0b, transparent),
+    radial-gradient(circle 3px at 25% 70%, #fbbf24, transparent),
+    radial-gradient(circle 2px at 75% 65%, #f59e0b, transparent);
+  background-size: 100px 100px, 100px 100px, 100px 100px, 100% 100%, 80px 80px, 90px 90px, 85px 85px, 95px 95px;
+  animation: pixelProfile 10s ease-in-out infinite;
+  opacity: 0.2;
+  z-index: 0;
+}
+
+@keyframes pixelProfile {
+  0%,
+  100% {
+    transform: scale(1) rotate(0deg);
+  }
+  50% {
+    transform: scale(1.05) rotate(2deg);
+  }
+}
+
+.profile-header::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--pixel-purple), var(--pixel-blue));
+  z-index: 1;
+}
+
+.profile-header h1 {
+  font-family: "Press Start 2P", monospace;
+  font-size: 16px;
+  font-weight: normal;
+  color: var(--pixel-text-primary);
+  margin-bottom: 8px;
+  line-height: 1.4;
+  position: relative;
+  z-index: 2;
+}
+
+.profile-header p {
+  color: var(--pixel-text-secondary);
+  font-family: "Press Start 2P", monospace;
+  font-size: 10px;
+  font-weight: normal;
+  position: relative;
+  z-index: 2;
+}
+
+.profile-content {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 20px;
+}
+
+.profile-main {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.profile-info-card {
+  padding: 20px;
+  background: var(--pixel-bg-card);
+  border: var(--pixel-border);
+  box-shadow: var(--pixel-shadow);
+  border-radius: 8px;
+}
+
+.profile-info-card .card-content {
+  display: flex;
+  gap: 20px;
+  padding: 0;
+}
+
+.profile-avatar-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.profile-avatar {
+  width: 120px;
+  height: 120px;
+  border: var(--pixel-border);
+  image-rendering: pixelated;
+  background: var(--pixel-bg-light);
+  box-shadow: var(--pixel-shadow);
+  position: relative;
+}
+
+.profile-avatar::after {
+  content: "👤";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 48px;
+  filter: drop-shadow(2px 2px 0px rgba(0, 0, 0, 0.3));
+}
+
+.profile-details {
+  flex: 1;
+}
+
+.profile-view {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.profile-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.profile-field label {
+  font-family: "Press Start 2P", monospace;
+  font-size: 8px;
+  font-weight: normal;
+  color: var(--pixel-text-primary);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.profile-field p {
+  color: var(--pixel-text-primary);
+  margin: 0;
+  font-family: "Press Start 2P", monospace;
+  font-size: 10px;
+}
+
+.profile-edit {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.form-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.profile-stats-card {
+  background: var(--pixel-bg-card);
+  border: var(--pixel-border);
+  box-shadow: var(--pixel-shadow);
+  padding: 20px;
+  border-radius: 8px;
+}
+
+.profile-stats-card .stats-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+.stat-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: linear-gradient(135deg, var(--pixel-bg-light) 0%, #f9fafb 100%);
+  border: var(--pixel-border-light);
+  transition: var(--pixel-transition);
+}
+
+.stat-item:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 4px 4px 0px rgba(0, 0, 0, 0.1);
+}
+
+.stat-icon {
+  font-size: 20px;
+  filter: drop-shadow(1px 1px 0px rgba(0, 0, 0, 0.2));
+}
+
+.stat-info h3 {
+  font-family: "Press Start 2P", monospace;
+  font-size: 12px;
+  font-weight: normal;
+  color: var(--pixel-text-primary);
+  margin: 0 0 2px 0;
+}
+
+.stat-info p {
+  color: var(--pixel-text-secondary);
+  font-family: "Press Start 2P", monospace;
+  font-size: 8px;
+  margin: 0;
+}
+
+.profile-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.achievements-card {
+  background: var(--pixel-bg-card);
+  border: var(--pixel-border);
+  box-shadow: var(--pixel-shadow);
+  padding: 20px;
+  border-radius: 8px;
+}
+
+.achievements-card .achievements-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 400px;
+  overflow-y: auto;
+  /* Ocultar scrollbar pero mantener funcionalidad */
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.achievements-card .achievements-list::-webkit-scrollbar {
+  display: none;
+}
+
+.achievement-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  transition: var(--pixel-transition);
+  border: var(--pixel-border-light);
+}
+
+.achievement-item.earned {
+  background: linear-gradient(135deg, var(--pixel-green-light) 0%, var(--pixel-bg-card) 100%);
+  border-color: var(--pixel-green-dark);
+}
+
+.achievement-item.earned:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 4px 4px 0px rgba(0, 0, 0, 0.1);
+}
+
+.achievement-item.locked {
+  background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+  border-color: var(--pixel-text-light);
+  opacity: 0.6;
+}
+
+.achievement-icon {
+  font-size: 16px;
+  filter: drop-shadow(1px 1px 0px rgba(0, 0, 0, 0.2));
+}
+
+.achievement-info {
+  flex: 1;
+}
+
+.achievement-info h4 {
+  font-family: "Press Start 2P", monospace;
+  font-size: 8px;
+  font-weight: normal;
+  color: var(--pixel-text-primary);
+  margin: 0 0 2px 0;
+}
+
+.achievement-info p {
+  font-family: "Press Start 2P", monospace;
+  font-size: 7px;
+  color: var(--pixel-text-secondary);
+  margin: 0;
+  line-height: 1.4;
+}
+
+.achievement-status {
+  font-size: 12px;
+}
+
+.skills-progress-card {
+  background: var(--pixel-bg-card);
+  border: var(--pixel-border);
+  box-shadow: var(--pixel-shadow);
+  padding: 20px;
+  border-radius: 8px;
+}
+
+.skills-progress-card .skills-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.skill-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.skill-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.skill-name {
+  font-family: "Press Start 2P", monospace;
+  font-size: 8px;
+  font-weight: normal;
+  color: var(--pixel-text-primary);
+}
+
+.skill-level {
+  font-family: "Press Start 2P", monospace;
+  font-size: 7px;
+  color: var(--pixel-text-secondary);
+  font-weight: normal;
+}
+
+.skill-progress {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.progress-bar {
+  flex: 1;
+  height: 8px;
+  background-color: #e5e7eb;
+  border: 2px solid var(--pixel-text-secondary);
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--pixel-blue) 0%, var(--pixel-purple) 100%);
+  transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.progress-text {
+  font-family: "Press Start 2P", monospace;
+  font-size: 7px;
+  color: var(--pixel-text-secondary);
+  min-width: 30px;
+  text-align: right;
+  font-weight: normal;
+}
+
+/* Form styles */
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.form-group label {
+  font-family: "Press Start 2P", monospace;
+  font-weight: normal;
+  color: var(--pixel-text-primary);
+  font-size: 8px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.form-input {
+  padding: 10px 12px;
+  border: var(--pixel-border-light);
+  background: var(--pixel-bg-light);
+  font-family: "Press Start 2P", monospace;
+  font-size: 8px;
+  transition: var(--pixel-transition);
+  color: var(--pixel-text-primary);
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: var(--pixel-blue);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  transform: translate(-1px, -1px);
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .profile-content {
+    grid-template-columns: 1fr;
+  }
+
+  .profile-sidebar {
+    order: -1;
+  }
+}
+
+@media (max-width: 768px) {
+  .profile-header h1 {
+    font-size: 14px;
+  }
+
+  .profile-info-card .card-content {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  .profile-stats-card .stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .form-actions {
+    flex-direction: column;
+  }
+}

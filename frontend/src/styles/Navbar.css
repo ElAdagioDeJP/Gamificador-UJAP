@@ -1,0 +1,110 @@
+/* Estructura flex para navbar y botón a la derecha */
+.navbar-content {
+  display: flex;
+  align-items: center;
+  width: 80%;
+}
+.navbar-user {
+  margin-right: auto;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+.navbar {
+  background: linear-gradient(135deg, var(--pixel-purple-dark) 0%, var(--pixel-blue-dark) 100%);
+  border-bottom: var(--pixel-border);
+  padding: 0 2rem;
+  height: 70px;
+  display: flex;
+  align-items: center;
+  position: fixed;
+  width: 100%;
+  top: 0;
+  z-index: 1001;
+  box-shadow: var(--pixel-shadow);
+}
+
+.navbar-brand {
+  font-family: "Press Start 2P", monospace;
+  font-size: 14px;
+  font-weight: normal;
+  color: var(--pixel-text-white);
+  text-shadow: 2px 2px 0px rgba(0, 0, 0, 0.5);
+}
+
+.navbar-user {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.navbar-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--pixel-border-color, #e5e7eb);
+  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
+}
+
+.navbar-username {
+  font-family: "Press Start 2P", monospace;
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: var(--pixel-text-white);
+}
+
+.navbar-university {
+  font-family: "Press Start 2P", monospace;
+  font-size: 0.75rem;
+  color: var(--pixel-text-secondary);
+}
+
+.logout-btn {
+  font-family: "Press Start 2P", monospace;
+  font-size: 8px;
+  padding: 8px 12px;
+  background: var(--pixel-red);
+  color: var(--pixel-text-white);
+  border: 2px solid var(--pixel-red-dark);
+  cursor: pointer;
+  transition: var(--pixel-transition);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+
+
+.logout-btn:hover {
+  background: var(--pixel-red-dark);
+  transform: translate(-1px, -1px);
+  box-shadow: 2px 2px 0px rgba(0, 0, 0, 0.3);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .navbar {
+    padding: 0 1rem;
+    height: 56px;
+  }
+  .navbar-username {
+    font-size: 0.75rem;
+  }
+  .navbar-university {
+    font-size: 0.65rem;
+  }
+  .navbar-avatar {
+    width: 32px;
+    height: 32px;
+  }
+  .logout-btn {
+    font-size: 7px;
+    padding: 6px 8px;
+  }
+}

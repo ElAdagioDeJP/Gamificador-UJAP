@@ -1,0 +1,304 @@
+-- Creamos la base de datos si no existe
+CREATE DATABASE IF NOT EXISTS studybooster_db DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+USE studybooster_db;
+
+-- TABLAS PRINCIPALES --
+
+-- Tabla de Usuarios (Estudiantes)
+-- Almacena la información central de cada estudiante, incluyendo su progreso en el juego.
+CREATE TABLE Usuarios (
+  id_usuario INT AUTO_INCREMENT PRIMARY KEY,
+  nombre_usuario VARCHAR(50) NOT NULL UNIQUE COMMENT 'Nickname para duelos y tablas de clasificación [cite: 22]',
+  nombre_completo VARCHAR(255) NOT NULL,
+  email_institucional VARCHAR(255) NOT NULL UNIQUE,
+  rol ENUM('estudiante','profesor') NOT NULL DEFAULT 'estudiante',
+  contrasena_hash VARCHAR(255) NOT NULL,
+  puntos_actuales INT DEFAULT 0 COMMENT 'Puntos disponibles para canjear o apostar [cite: 13]',
+  experiencia_total BIGINT DEFAULT 0 COMMENT 'Experiencia acumulada para subir de nivel [cite: 8]',
+  nivel INT DEFAULT 1 COMMENT 'Nivel del usuario basado en la experiencia [cite: 8]',
+  racha_dias_consecutivos INT DEFAULT 0 COMMENT 'Contador de días seguidos completando misiones diarias [cite: 3, 5]',
+  fecha_ultima_actividad DATE COMMENT 'Usada para calcular y reiniciar la racha diaria',
+  fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB;
+
+-- Tabla de Profesores
+-- Podrían ser un rol dentro de la tabla Usuarios, pero una tabla separada permite atributos específicos.
+CREATE TABLE Profesores (
+  id_profesor INT AUTO_INCREMENT PRIMARY KEY,
+  nombre_completo VARCHAR(255) NOT NULL,
+  email_institucional VARCHAR(255) NOT NULL UNIQUE
+) ENGINE=InnoDB;
+
+-- Tabla de Materias
+-- Las materias son el eje para la clasificación y las misiones específicas.
+CREATE TABLE Materias (
+  id_materia INT AUTO_INCREMENT PRIMARY KEY,
+  nombre_materia VARCHAR(255) NOT NULL,
+  id_profesor_coordinador INT,
+  FOREIGN KEY (id_profesor_coordinador) REFERENCES Profesores(id_profesor)
+) ENGINE=InnoDB;
+
+-- Tabla de Inscripciones
+-- Vincula a los estudiantes con las materias que están cursando en un período académico.
+CREATE TABLE Inscripciones (
+  id_inscripcion INT AUTO_INCREMENT PRIMARY KEY,
+  id_usuario INT,
+  id_materia INT,
+  periodo_academico VARCHAR(20),
+  UNIQUE(id_usuario, id_materia, periodo_academico),
+  FOREIGN KEY (id_usuario) REFERENCES Usuarios(id_usuario),
+  FOREIGN KEY (id_materia) REFERENCES Materias(id_materia)
+) ENGINE=InnoDB;
+
+
+-- TABLAS DEL SISTEMA DE MISIONES --
+
+-- Tabla de Misiones
+-- Contiene todas las misiones, tanto las diarias como las creadas por profesores.
+CREATE TABLE Misiones (
+  id_mision INT AUTO_INCREMENT PRIMARY KEY,
+  titulo VARCHAR(255) NOT NULL,
+  descripcion TEXT,
+  tipo_mision ENUM('DIARIA', 'TAREA') NOT NULL COMMENT 'Diferencia misiones generales de tareas asignadas [cite: 4, 11]',
+  dificultad ENUM('BASICA', 'AVANZADA', 'EPICA') COMMENT 'Dificultad escalable para tareas [cite: 12]',
+  id_materia_asociada INT NULL COMMENT 'Vincula la misión a una materia específica',
+  id_profesor_creador INT NULL COMMENT 'Profesor que asigna la tarea',
+  -- Recompensas
+  puntos_recompensa INT DEFAULT 0,
+  experiencia_recompensa INT DEFAULT 0,
+  bono_nota DECIMAL(3,2) DEFAULT 0.00 COMMENT 'Bonificación sobre la nota final (ej. 0.5) [cite: 12]',
+  -- Requisitos para misiones épicas [cite: 16]
+  req_nivel_minimo INT DEFAULT 1,
+  req_racha_minima INT DEFAULT 0,
+  req_puntos_minimos INT DEFAULT 0,
+  FOREIGN KEY (id_materia_asociada) REFERENCES Materias(id_materia),
+  FOREIGN KEY (id_profesor_creador) REFERENCES Profesores(id_profesor)
+) ENGINE=InnoDB;
+
+-- Tabla de Progreso de Misiones por Usuario
+-- Registra el estado de las misiones para cada usuario.
+CREATE TABLE Usuario_Misiones (
+  id_usuario_mision INT AUTO_INCREMENT PRIMARY KEY,
+  id_usuario INT,
+  id_mision INT,
+  fecha_completada TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  estado ENUM('ASIGNADA', 'EN_PROGRESO', 'COMPLETADA', 'VENCIDA') DEFAULT 'ASIGNADA',
+  FOREIGN KEY (id_usuario) REFERENCES Usuarios(id_usuario),
+  FOREIGN KEY (id_mision) REFERENCES Misiones(id_mision)
+) ENGINE=InnoDB;
+
+
+-- TABLAS DEL SISTEMA DE DUELOS --
+
+-- Tabla de Duelos
+-- Almacena la información de cada partida, sea 1v1 o cooperativa.
+CREATE TABLE Duelos (
+  id_duelo INT AUTO_INCREMENT PRIMARY KEY,
+  tipo_duelo ENUM('CLASICO', 'COOPERATIVO') NOT NULL COMMENT '[cite: 18, 20]',
+  id_materia INT,
+  estado ENUM('PENDIENTE', 'EN_JUEGO', 'FINALIZADO', 'CANCELADO') NOT NULL,
+  fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  id_ganador INT NULL COMMENT 'Puede ser id_usuario o id_equipo (si se implementan equipos)',
+  puntos_apostados INT NOT NULL COMMENT 'Cantidad de puntos en juego por cada jugador [cite: 23]',
+  FOREIGN KEY (id_materia) REFERENCES Materias(id_materia)
+) ENGINE=InnoDB;
+
+-- Tabla de Participantes en Duelos
+-- Vincula a los usuarios con los duelos en los que participan.
+CREATE TABLE Duelo_Participantes (
+  id_participante_duelo INT AUTO_INCREMENT PRIMARY KEY,
+  id_duelo INT,
+  id_usuario INT,
+  equipo VARCHAR(50) NULL COMMENT 'Para duelos cooperativos',
+  puntuacion_final INT DEFAULT 0,
+  FOREIGN KEY (id_duelo) REFERENCES Duelos(id_duelo),
+  FOREIGN KEY (id_usuario) REFERENCES Usuarios(id_usuario)
+) ENGINE=InnoDB;
+
+-- Banco de Preguntas para Duelos
+CREATE TABLE Preguntas_Duelo (
+  id_pregunta INT AUTO_INCREMENT PRIMARY KEY,
+  id_materia INT,
+  enunciado TEXT NOT NULL,
+  dificultad ENUM('FACIL', 'NORMAL', 'DIFICIL') NOT NULL COMMENT 'Para rondas de desempate [cite: 19]',
+  FOREIGN KEY (id_materia) REFERENCES Materias(id_materia)
+) ENGINE=InnoDB;
+
+-- Respuestas a las Preguntas
+CREATE TABLE Respuestas_Duelo (
+  id_respuesta INT AUTO_INCREMENT PRIMARY KEY,
+  id_pregunta INT,
+  texto_respuesta VARCHAR(255) NOT NULL,
+  es_correcta BOOLEAN NOT NULL DEFAULT FALSE,
+  FOREIGN KEY (id_pregunta) REFERENCES Preguntas_Duelo(id_pregunta) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+
+-- TABLAS DE RECOMPENSAS Y CANJES --
+
+-- Tabla de Insignias (Logros)
+-- Recompensas no numéricas por logros especiales.
+CREATE TABLE Insignias (
+  id_insignia INT AUTO_INCREMENT PRIMARY KEY,
+  nombre VARCHAR(100) NOT NULL,
+  descripcion TEXT,
+  icono_url VARCHAR(255) COMMENT 'URL a la imagen del logro',
+  id_mision_desbloqueo INT NULL COMMENT 'Misión avanzada o épica que la otorga [cite: 12]',
+  FOREIGN KEY (id_mision_desbloqueo) REFERENCES Misiones(id_mision)
+) ENGINE=InnoDB;
+
+-- Tabla de Insignias Obtenidas por Usuario
+CREATE TABLE Usuario_Insignias (
+  id_usuario_insignia INT AUTO_INCREMENT PRIMARY KEY,
+  id_usuario INT,
+  id_insignia INT,
+  fecha_obtencion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (id_usuario) REFERENCES Usuarios(id_usuario),
+  FOREIGN KEY (id_insignia) REFERENCES Insignias(id_insignia)
+) ENGINE=InnoDB;
+
+-- Catálogo de Recompensas Canjeables
+-- Items que los usuarios pueden "comprar" con sus puntos.
+CREATE TABLE Recompensas_Canjeables (
+  id_recompensa INT AUTO_INCREMENT PRIMARY KEY,
+  nombre VARCHAR(255) NOT NULL,
+  descripcion TEXT,
+  tipo_recompensa ENUM('FISICA', 'ACADEMICA') NOT NULL COMMENT '[cite: 14, 15]',
+  costo_en_puntos INT NOT NULL,
+  stock INT NULL COMMENT 'Para recursos físicos limitados',
+  requiere_aprobacion_docente BOOLEAN DEFAULT FALSE COMMENT 'Para bonos de nota [cite: 14]'
+) ENGINE=InnoDB;
+
+-- Historial de Canjes de Recompensas
+CREATE TABLE Usuario_Canjes (
+  id_canje INT AUTO_INCREMENT PRIMARY KEY,
+  id_usuario INT,
+  id_recompensa INT,
+  puntos_gastados INT,
+  fecha_canje TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  estado_aprobacion ENUM('PENDIENTE', 'APROBADO', 'RECHAZADO') DEFAULT 'APROBADO',
+  FOREIGN KEY (id_usuario) REFERENCES Usuarios(id_usuario),
+  FOREIGN KEY (id_recompensa) REFERENCES Recompensas_Canjeables(id_recompensa)
+) ENGINE=InnoDB;
+
+
+-- TABLAS DE INTEGRACIÓN Y UTILIDADES --
+
+-- Códigos QR para eventos y lugares físicos
+CREATE TABLE Codigos_QR (
+  id_qr INT AUTO_INCREMENT PRIMARY KEY,
+  codigo_hash VARCHAR(255) NOT NULL UNIQUE,
+  descripcion VARCHAR(255) COMMENT 'Ej: "QR Biblioteca Semana 1", "QR Evento IA" [cite: 25]',
+  puntos_recompensa INT NOT NULL,
+  experiencia_recompensa INT NOT NULL,
+  fecha_expiracion DATETIME,
+  usos_maximos INT NULL,
+  usos_actuales INT DEFAULT 0
+) ENGINE=InnoDB;
+
+-- Registro de escaneos de QR por usuario
+CREATE TABLE Usuario_Escaneos_QR (
+  id_escaneo INT AUTO_INCREMENT PRIMARY KEY,
+  id_usuario INT,
+  id_qr INT,
+  fecha_escaneo TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE(id_usuario, id_qr) COMMENT 'Un usuario solo puede escanear cada QR una vez',
+  FOREIGN KEY (id_usuario) REFERENCES Usuarios(id_usuario),
+  FOREIGN KEY (id_qr) REFERENCES Codigos_QR(id_qr)
+) ENGINE=InnoDB;
+
+-- Tareas personales para planificación del estudiante
+-- Soporte para la funcionalidad de autorregulación y agenda [cite: 27, 29]
+CREATE TABLE Tareas_Personales (
+  id_tarea INT AUTO_INCREMENT PRIMARY KEY,
+  id_usuario INT,
+  titulo VARCHAR(255) NOT NULL,
+  descripcion TEXT,
+  fecha_vencimiento DATETIME,
+  estado ENUM('PENDIENTE', 'COMPLETADA') DEFAULT 'PENDIENTE',
+  google_calendar_event_id VARCHAR(255) NULL COMMENT 'Para sincronización con Google Calendar API [cite: 27]',
+  FOREIGN KEY (id_usuario) REFERENCES Usuarios(id_usuario)
+) ENGINE=InnoDB;
+
+
+-- DATOS DE EJEMPLO PARA DUELOS --
+
+-- Pregunta 1: Capital de Francia
+INSERT INTO Preguntas_Duelo (id_materia, enunciado, dificultad) VALUES (1, '¿Cuál es la capital de Francia?', 'FACIL');
+INSERT INTO Respuestas_Duelo (id_pregunta, texto_respuesta, es_correcta) VALUES
+  (1, 'Madrid', 0),
+  (1, 'París', 1),
+  (1, 'Roma', 0),
+  (1, 'Berlín', 0);
+
+-- Pregunta 2: Autor de Cien años de soledad
+INSERT INTO Preguntas_Duelo (id_materia, enunciado, dificultad) VALUES (1, '¿Quién escribió Cien años de soledad?', 'FACIL');
+INSERT INTO Respuestas_Duelo (id_pregunta, texto_respuesta, es_correcta) VALUES
+  (2, 'Gabriel García Márquez', 1),
+  (2, 'Mario Vargas Llosa', 0),
+  (2, 'Julio Cortázar', 0),
+  (2, 'Isabel Allende', 0);
+
+-- Pregunta 3: Programación - Salida de código
+INSERT INTO Preguntas_Duelo (id_materia, enunciado, dificultad) VALUES (1, '¿Cuál es la salida de: console.log(typeof null);', 'NORMAL');
+INSERT INTO Respuestas_Duelo (id_pregunta, texto_respuesta, es_correcta) VALUES
+  (3, '"object"', 1),
+  (3, '"null"', 0),
+  (3, '"undefined"', 0),
+  (3, '"string"', 0);
+
+-- Pregunta 4: Matemáticas - Derivada
+INSERT INTO Preguntas_Duelo (id_materia, enunciado, dificultad) VALUES (1, '¿Cuál es la derivada de f(x) = x^2?', 'NORMAL');
+INSERT INTO Respuestas_Duelo (id_pregunta, texto_respuesta, es_correcta) VALUES
+  (4, '2x', 1),
+  (4, 'x', 0),
+  (4, 'x^2', 0),
+  (4, '1', 0);
+
+-- Pregunta 5: Lógica - Tabla de verdad
+INSERT INTO Preguntas_Duelo (id_materia, enunciado, dificultad) VALUES (1, '¿Cuál es el valor de la expresión: (true && false) || true?', 'NORMAL');
+INSERT INTO Respuestas_Duelo (id_pregunta, texto_respuesta, es_correcta) VALUES
+  (5, 'true', 1),
+  (5, 'false', 0),
+  (5, 'undefined', 0),
+  (5, 'null', 0);
+
+-- Pregunta 6: Algoritmos - Complejidad
+INSERT INTO Preguntas_Duelo (id_materia, enunciado, dificultad) VALUES (1, '¿Cuál es la complejidad temporal de la búsqueda binaria?', 'DIFICIL');
+INSERT INTO Respuestas_Duelo (id_pregunta, texto_respuesta, es_correcta) VALUES
+  (6, 'O(log n)', 1),
+  (6, 'O(n)', 0),
+  (6, 'O(n^2)', 0),
+  (6, 'O(1)', 0);
+
+-- Pregunta 7: Redes - Protocolo
+INSERT INTO Preguntas_Duelo (id_materia, enunciado, dificultad) VALUES (1, '¿Qué protocolo se utiliza para transferir archivos entre computadoras en red?', 'DIFICIL');
+INSERT INTO Respuestas_Duelo (id_pregunta, texto_respuesta, es_correcta) VALUES
+  (7, 'FTP', 1),
+  (7, 'HTTP', 0),
+  (7, 'SMTP', 0),
+  (7, 'SSH', 0);
+
+-- Pregunta 8: Bases de datos - SQL
+INSERT INTO Preguntas_Duelo (id_materia, enunciado, dificultad) VALUES (1, '¿Qué instrucción SQL se usa para eliminar una tabla?', 'DIFICIL');
+INSERT INTO Respuestas_Duelo (id_pregunta, texto_respuesta, es_correcta) VALUES
+  (8, 'DROP TABLE', 1),
+  (8, 'DELETE TABLE', 0),
+  (8, 'REMOVE TABLE', 0),
+  (8, 'TRUNCATE TABLE', 0);
+
+-- Pregunta 9: Sistemas operativos - Kernel
+INSERT INTO Preguntas_Duelo (id_materia, enunciado, dificultad) VALUES (1, '¿Qué es el kernel de un sistema operativo?', 'NORMAL');
+INSERT INTO Respuestas_Duelo (id_pregunta, texto_respuesta, es_correcta) VALUES
+  (9, 'El núcleo que gestiona recursos y comunicación entre hardware y software', 1),
+  (9, 'La interfaz gráfica del sistema', 0),
+  (9, 'El sistema de archivos', 0),
+  (9, 'El programa que inicia la computadora', 0);
+
+-- Pregunta 10: Programación - Lenguaje Python
+INSERT INTO Preguntas_Duelo (id_materia, enunciado, dificultad) VALUES (1, '¿Cuál es la función para imprimir en pantalla en Python?', 'FACIL');
+INSERT INTO Respuestas_Duelo (id_pregunta, texto_respuesta, es_correcta) VALUES
+  (10, 'print()', 1),
+  (10, 'echo()', 0),
+  (10, 'console.log()', 0),
+  (10, 'write()', 0);

@@ -1,0 +1,200 @@
+.sidebar {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 280px;
+  height: 100vh;
+  background: linear-gradient(180deg, var(--pixel-bg-primary) 0%, var(--pixel-bg-secondary) 100%);
+  border-right: var(--pixel-border);
+  box-shadow: var(--pixel-shadow-lg);
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  transition: var(--pixel-transition);
+  overflow: hidden;
+}
+
+/* Textura de fondo pixel para sidebar */
+.sidebar::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(circle at 25% 25%, rgba(251, 191, 36, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 75% 75%, rgba(245, 158, 11, 0.1) 0%, transparent 50%);
+  background-size: 40px 40px;
+  pointer-events: none;
+}
+
+.sidebar-header {
+  padding: 20px 16px;
+  border-bottom: var(--pixel-border-light);
+  background: linear-gradient(135deg, var(--pixel-purple) 0%, var(--pixel-blue) 100%);
+  position: relative;
+  text-align: center;
+}
+
+.sidebar-header::after {
+  content: "";
+  position: absolute;
+  bottom: -3px;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: repeating-linear-gradient(
+    90deg,
+    var(--pixel-yellow) 0px,
+    var(--pixel-yellow) 4px,
+    var(--pixel-orange) 4px,
+    var(--pixel-orange) 8px
+  );
+}
+
+.sidebar-title {
+  font-family: "Press Start 2P", monospace;
+  font-size: 14px;
+  font-weight: normal;
+  margin: 0;
+  color: var(--pixel-text-white);
+  text-shadow: var(--pixel-shadow-sm);
+  position: relative;
+}
+
+.sidebar-title::before {
+  content: "🎮";
+  position: absolute;
+  left: 10px;
+  top: -5px;
+  transform: translateY(-50%);
+  font-size: 16px;
+  animation: pixelBounce 2s infinite;
+}
+
+.sidebar-nav {
+  flex: 1;
+  padding: 16px 0;
+  overflow-y: auto;
+}
+
+.sidebar-menu {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.sidebar-menu-item {
+  margin: 0 12px;
+}
+
+.sidebar-link {
+  display: flex;
+  align-items: center;
+  padding: 12px 16px;
+  color: var(--pixel-text-light);
+  text-decoration: none;
+  transition: var(--pixel-transition);
+  border: 2px solid transparent;
+  position: relative;
+  font-family: "Press Start 2P", monospace;
+  font-size: 10px;
+  background: rgba(0, 0, 0, 0.2);
+  margin-bottom: 4px;
+}
+
+.sidebar-link::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 0;
+  background: linear-gradient(90deg, var(--pixel-yellow), var(--pixel-orange));
+  transition: width 0.3s ease;
+}
+
+.sidebar-link:hover {
+  background: rgba(251, 191, 36, 0.2);
+  color: var(--pixel-text-white);
+  transform: translateX(4px);
+  border-color: var(--pixel-yellow);
+}
+
+.sidebar-link:hover::before {
+  width: 4px;
+}
+
+.sidebar-link-active {
+  background: linear-gradient(135deg, var(--pixel-blue) 0%, var(--pixel-purple) 100%);
+  color: var(--pixel-text-white);
+  border-color: var(--pixel-yellow);
+  box-shadow: var(--pixel-shadow-sm);
+  position: relative;
+}
+
+.sidebar-link-active::after {
+  content: "";
+  position: absolute;
+  right: -12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 0;
+  height: 0;
+  border-left: 8px solid var(--pixel-yellow);
+  border-top: 6px solid transparent;
+  border-bottom: 6px solid transparent;
+}
+
+.sidebar-icon {
+  font-size: 16px;
+  margin-right: 12px;
+  width: 20px;
+  text-align: center;
+  transition: var(--pixel-transition);
+  filter: drop-shadow(1px 1px 0px rgba(0, 0, 0, 0.5));
+}
+
+.sidebar-link:hover .sidebar-icon {
+  transform: scale(1.2);
+  animation: pixelBounce 0.6s ease;
+}
+
+.sidebar-label {
+  font-family: "Press Start 2P", monospace;
+  font-size: 10px;
+  font-weight: normal;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+/* Efectos especiales para el sidebar */
+.sidebar-menu-item:nth-child(odd) .sidebar-link {
+  background: rgba(0, 0, 0, 0.1);
+}
+
+.sidebar-menu-item:nth-child(even) .sidebar-link {
+  background: rgba(0, 0, 0, 0.3);
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  /* Sidebar siempre visible y fijo */
+}
+
+@media (max-width: 768px) {
+  .sidebar {
+    width: 100%;
+  }
+
+  .sidebar-title {
+    font-size: 12px;
+  }
+
+  .sidebar-label {
+    font-size: 8px;
+  }
+}

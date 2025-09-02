@@ -1,0 +1,208 @@
+.btn {
+  font-family: "Press Start 2P", monospace;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: var(--pixel-border);
+  cursor: pointer;
+  text-decoration: none;
+  gap: 8px;
+  position: relative;
+  overflow: hidden;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  transition: var(--pixel-transition);
+  box-shadow: var(--pixel-shadow);
+  background: var(--pixel-blue);
+  color: var(--pixel-text-white);
+}
+
+.btn:focus {
+  outline: 3px solid var(--pixel-yellow);
+  outline-offset: 2px;
+}
+
+.btn:disabled {
+  pointer-events: none;
+  opacity: 0.5;
+  filter: grayscale(100%);
+}
+
+/* Efectos hover pixel */
+.btn:hover:not(.btn-disabled) {
+  transform: translate(-2px, -2px);
+  box-shadow: 6px 6px 0px rgba(0, 0, 0, 0.4);
+}
+
+.btn:active:not(.btn-disabled) {
+  transform: translate(1px, 1px);
+  box-shadow: 2px 2px 0px rgba(0, 0, 0, 0.4);
+}
+
+/* Variantes pixel */
+.btn-primary {
+  background: linear-gradient(135deg, var(--pixel-blue) 0%, var(--pixel-purple) 100%);
+  border-color: var(--pixel-blue-dark);
+}
+
+.btn-primary::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--pixel-blue-light);
+}
+
+.btn-secondary {
+  background: linear-gradient(135deg, var(--pixel-bg-light) 0%, #e5e7eb 100%);
+  color: var(--pixel-text-primary);
+  border-color: var(--pixel-text-secondary);
+}
+
+.btn-secondary::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: #f3f4f6;
+}
+
+.btn-success {
+  background: linear-gradient(135deg, var(--pixel-green) 0%, var(--pixel-green-dark) 100%);
+  border-color: var(--pixel-green-dark);
+}
+
+.btn-success::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--pixel-green-light);
+}
+
+.btn-warning {
+  background: linear-gradient(135deg, var(--pixel-orange) 0%, var(--pixel-orange-dark) 100%);
+  border-color: var(--pixel-orange-dark);
+}
+
+.btn-warning::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--pixel-orange-light);
+}
+
+.btn-danger {
+  background: linear-gradient(135deg, var(--pixel-red) 0%, var(--pixel-red-dark) 100%);
+  border-color: var(--pixel-red-dark);
+}
+
+.btn-danger::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--pixel-red-light);
+}
+
+/* Tamaños pixel */
+.btn-small {
+  padding: 8px 12px;
+  font-size: 8px;
+}
+
+.btn-medium {
+  padding: 12px 16px;
+  font-size: 10px;
+}
+
+.btn-large {
+  padding: 16px 24px;
+  font-size: 12px;
+}
+
+/* Estados especiales */
+.btn-disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none !important;
+  filter: grayscale(100%);
+}
+
+.btn-loading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-spinner {
+  width: 12px;
+  height: 12px;
+  border: 2px solid transparent;
+  border-top: 2px solid currentColor;
+  border-radius: 0;
+  animation: pixelSpin 1s linear infinite;
+}
+
+@keyframes pixelSpin {
+  0% {
+    transform: rotate(0deg);
+  }
+  25% {
+    transform: rotate(90deg);
+  }
+  50% {
+    transform: rotate(180deg);
+  }
+  75% {
+    transform: rotate(270deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* Efectos especiales para botones de logro */
+.btn-achievement {
+  background: linear-gradient(135deg, var(--pixel-yellow) 0%, var(--pixel-orange) 100%);
+  border-color: var(--pixel-yellow-dark);
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-achievement::after {
+  content: "✨";
+  position: absolute;
+  top: -20px;
+  right: -20px;
+  font-size: 16px;
+  animation: pixelSparkle 2s ease-in-out infinite;
+}
+
+@keyframes pixelSparkle {
+  0%,
+  100% {
+    transform: rotate(0deg) scale(0);
+    opacity: 0;
+  }
+  50% {
+    transform: rotate(180deg) scale(1);
+    opacity: 1;
+  }
+}
+
+.btn-achievement:hover::after {
+  animation: pixelSparkle 0.5s ease-in-out infinite;
+}

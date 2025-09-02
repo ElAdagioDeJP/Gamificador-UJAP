@@ -1,0 +1,41 @@
+.layout {
+  display: flex;
+  min-height: 100vh;
+  background-color: transparent;
+  width: 100%;
+  overflow-x: hidden;
+}
+
+.layout-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  margin-left: 280px;
+  transition: margin-left 0.3s ease;
+  min-height: 100vh;
+  width: calc(100% - 280px);
+  overflow-x: hidden;
+}
+
+.layout-content {
+  flex: 1;
+  padding: 2rem;
+  overflow-x: hidden;
+  position: relative;
+  width: 100%;
+  max-width: 100%;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .layout-main {
+    margin-left: 0;
+    width: 100%;
+  }
+}
+
+@media (max-width: 768px) {
+  .layout-content {
+    padding: 1rem;
+  }
+}
