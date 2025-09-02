@@ -30,11 +30,17 @@ const Subjects = () => {
         <p>Tus materias inscritas, profesores y tareas con su peso</p>
       </div>
 
-      <div className="subjects-grid">
+      {!subjects.length ? (
+        <Card className="subject-card">
+          <div className="no-assignments">No tienes materias para mostrar aún.</div>
+        </Card>
+      ) : (
+        <div className="subjects-grid">
         {subjects.map((s) => (
           <Card key={s.id} className="subject-card">
             <div className="subject-header">
               <h3>{s.name}</h3>
+              {!s.enrolled && <span className="badge badge-muted">No inscrito</span>}
               <div className="professors">
                 {s.professors.map((p) => (
                   <div key={p.id} className="professor-chip">
@@ -59,6 +65,7 @@ const Subjects = () => {
           </Card>
         ))}
       </div>
+      )}
     </div>
   );
 }

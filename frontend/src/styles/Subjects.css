@@ -10,3 +10,5 @@
 .assignment-title { font-weight: 600; }
 .assignment-meta { font-size: 12px; color: #6b7280; }
 .assignment-weight { font-weight: 700; }
+.badge { display:inline-block; padding:2px 6px; border-radius:9999px; font-size:12px; border:1px solid #e5e7eb; }
+.badge-muted { background:#f3f4f6; color:#374151; }

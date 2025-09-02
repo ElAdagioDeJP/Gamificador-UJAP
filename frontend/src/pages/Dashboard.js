@@ -17,6 +17,23 @@ const Dashboard = () => {
   const dailyMissions = missions.filter((mission) => !mission.completed).slice(0, 3)
   const completedToday = missions.filter((mission) => mission.completed).length
 
+  // Helper para mostrar dificultad sin ternarios anidados
+  const difficultyText = (d) => ({
+    easy: "🟢 Fácil",
+    medium: "🟡 Medio",
+    hard: "🔴 Difícil",
+  }[d] || "❓")
+
+  // Datos del gráfico semanal (claves estables)
+  const weekDays = ["L", "M", "X", "J", "V", "S", "D"]
+  const weekHeights = [65, 80, 45, 90, 75, 60, 85]
+  const weeklyChart = weekDays.map((day, i) => ({ day, height: weekHeights[i] }))
+
+  // Flags para logros dinámicos
+  const showCompletedToday = completedToday > 0
+  const showStreak = streak > 0
+  const leveledUp = level > 1
+
   return (
     <div className="dashboard">
       <div className="dashboard-header">
@@ -74,13 +91,7 @@ const Dashboard = () => {
                     <h4>{mission.title}</h4>
                     <p>{mission.description}</p>
                     <div className="mission-meta">
-                      <span className={`difficulty ${mission.difficulty}`}>
-                        {mission.difficulty === "easy"
-                          ? "🟢 Fácil"
-                          : mission.difficulty === "medium"
-                            ? "🟡 Medio"
-                            : "🔴 Difícil"}
-                      </span>
+                      <span className={`difficulty ${mission.difficulty}`}>{difficultyText(mission.difficulty)}</span>
                       <span className="points">+{mission.points} pts</span>
                     </div>
                   </div>
@@ -101,10 +112,10 @@ const Dashboard = () => {
           <div className="progress-chart">
             <div className="chart-placeholder">
               <div className="chart-bars">
-                {[65, 80, 45, 90, 75, 60, 85].map((height, index) => (
-                  <div key={index} className="chart-bar">
+                {weeklyChart.map(({ day, height }) => (
+                  <div key={day} className="chart-bar">
                     <div className="bar-fill" style={{ height: `${height}%` }}></div>
-                    <span className="bar-label">{["L", "M", "X", "J", "V", "S", "D"][index]}</span>
+                    <span className="bar-label">{day}</span>
                   </div>
                 ))}
               </div>
@@ -117,30 +128,48 @@ const Dashboard = () => {
       <div className="dashboard-achievements">
         <Card title="🏅 Logros Recientes" className="recent-achievements">
           <div className="achievements-list">
-            <div className="achievement-item">
-              <span className="achievement-icon">🎯</span>
-              <div className="achievement-info">
-                <h4>Misión Completada</h4>
-                <p>Participar en Foro - +50 pts</p>
+            {showCompletedToday && (
+              <div className="achievement-item">
+                <span className="achievement-icon">🎯</span>
+                <div className="achievement-info">
+                  <h4>
+                    {completedToday} misión{completedToday > 1 ? "es" : ""} completada
+                    {completedToday > 1 ? "s" : ""}
+                  </h4>
+                  <p>Buen trabajo</p>
+                </div>
+                <span className="achievement-time">Hoy</span>
               </div>
-              <span className="achievement-time">Hace 2 horas</span>
-            </div>
-            <div className="achievement-item">
-              <span className="achievement-icon">🔥</span>
-              <div className="achievement-info">
-                <h4>Racha de 7 días</h4>
-                <p>¡Mantén el ritmo!</p>
+            )}
+            {showStreak && (
+              <div className="achievement-item">
+                <span className="achievement-icon">🔥</span>
+                <div className="achievement-info">
+                  <h4>Racha de {streak} día{streak > 1 ? "s" : ""}</h4>
+                  <p>¡Mantén el ritmo!</p>
+                </div>
+                <span className="achievement-time">Reciente</span>
               </div>
-              <span className="achievement-time">Hoy</span>
-            </div>
-            <div className="achievement-item">
-              <span className="achievement-icon">⬆️</span>
-              <div className="achievement-info">
-                <h4>Subiste de nivel</h4>
-                <p>Ahora eres nivel 15</p>
+            )}
+            {leveledUp ? (
+              <div className="achievement-item">
+                <span className="achievement-icon">⬆️</span>
+                <div className="achievement-info">
+                  <h4>Subiste de nivel</h4>
+                  <p>Ahora eres nivel {level}</p>
+                </div>
+                <span className="achievement-time">Reciente</span>
               </div>
-              <span className="achievement-time">Ayer</span>
-            </div>
+            ) : (
+              <div className="achievement-item">
+                <span className="achievement-icon">✨</span>
+                <div className="achievement-info">
+                  <h4>¡Primeros pasos!</h4>
+                  <p>Has iniciado tu aventura</p>
+                </div>
+                <span className="achievement-time">Hoy</span>
+              </div>
+            )}
           </div>
         </Card>
       </div>

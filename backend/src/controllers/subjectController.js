@@ -38,12 +38,57 @@ exports.getStudentSubjects = async (req, res, next) => {
       }, {});
     }
 
-    const data = subjects.map(s => ({
+    let data = subjects.map(s => ({
       id: s.id_materia,
       name: s.nombre_materia,
       professors: professorsBySubject[s.id_materia] || [],
       assignments: assignmentsBySubject[s.id_materia] || [],
+      enrolled: true,
     }));
+
+    // Fallback: si el estudiante no tiene inscripciones, devolver catálogo general
+    if (!data.length) {
+      const [allSubjects] = await sequelize.query(
+        `SELECT m.id_materia, m.nombre_materia FROM Materias m ORDER BY m.nombre_materia`
+      );
+      const allIds = allSubjects.map(s => s.id_materia);
+
+      let profs = [];
+      let assigns = [];
+      if (allIds.length) {
+        [profs] = await sequelize.query(
+          `SELECT pm.id_materia, u.id_usuario, u.nombre_completo, u.email_institucional, u.avatar_url
+             FROM Profesor_Materias pm
+             JOIN Usuarios u ON u.id_usuario = pm.id_profesor
+            WHERE pm.id_materia IN (:ids)`, { replacements: { ids: allIds } }
+        );
+        [assigns] = await sequelize.query(
+          `SELECT id_mision, titulo, descripcion, puntos_recompensa, experiencia_recompensa, peso_en_calificacion, dificultad, id_materia_asociada
+             FROM Misiones
+            WHERE tipo_mision = 'TAREA' AND id_materia_asociada IN (:ids)
+            ORDER BY id_mision DESC`, { replacements: { ids: allIds } }
+        );
+      }
+
+      const profBy = profs.reduce((acc, p) => {
+        acc[p.id_materia] = acc[p.id_materia] || [];
+        acc[p.id_materia].push({ id: p.id_usuario, name: p.nombre_completo, email: p.email_institucional, avatar: p.avatar_url || null });
+        return acc;
+      }, {});
+      const assBy = assigns.reduce((acc, a) => {
+        acc[a.id_materia_asociada] = acc[a.id_materia_asociada] || [];
+        acc[a.id_materia_asociada].push({ id: a.id_mision, title: a.titulo, description: a.descripcion, points: a.puntos_recompensa || 0, exp: a.experiencia_recompensa || 0, weight: Number(a.peso_en_calificacion) || 0, difficulty: (a.dificultad || 'BASICA').toLowerCase() });
+        return acc;
+      }, {});
+
+      data = allSubjects.map(s => ({
+        id: s.id_materia,
+        name: s.nombre_materia,
+        professors: profBy[s.id_materia] || [],
+        assignments: assBy[s.id_materia] || [],
+        enrolled: false,
+      }));
+    }
 
     res.json({ success: true, data });
   } catch (e) { next(e); }
