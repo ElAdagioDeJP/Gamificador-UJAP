@@ -11,11 +11,13 @@ import Duels from "./pages/Duels"
 import Profile from "./pages/Profile"
 import Leaderboard from "./pages/Leaderboard"
 import Skills from "./pages/Skills"
+import Subjects from "./pages/Subjects"
 import TeacherDashboard from "./pages/teacher/TeacherDashboard"
 import Students from "./pages/teacher/Students"
 import Assignments from "./pages/teacher/Assignments"
 import Grading from "./pages/teacher/Grading"
 import TeacherProfile from "./pages/teacher/TeacherProfile"
+import TeacherSubjects from "./pages/teacher/TeacherSubjects"
 import ProtectedRoute from "./components/common/ProtectedRoute"
 import "./styles/global.css"
 
@@ -90,6 +92,16 @@ function App() {
                   </ProtectedRoute>
                 }
               />
+              <Route
+                path="/subjects"
+                element={
+                  <ProtectedRoute allowedRoles={["estudiante"]}>
+                    <Layout>
+                      <Subjects />
+                    </Layout>
+                  </ProtectedRoute>
+                }
+              />
 
               {/* Rutas de profesor */}
               <Route
@@ -138,6 +150,16 @@ function App() {
                   <ProtectedRoute allowedRoles={["profesor"]}>
                     <TeacherLayout>
                       <TeacherProfile />
+                    </TeacherLayout>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/teacher/subjects"
+                element={
+                  <ProtectedRoute allowedRoles={["profesor"]}>
+                    <TeacherLayout>
+                      <TeacherSubjects />
                     </TeacherLayout>
                   </ProtectedRoute>
                 }

@@ -21,6 +21,7 @@ const Navbar = () => {
           />
           <div className="navbar-user-info">
             <span className="navbar-username">{user?.name}</span>
+            <span className="navbar-separator">•</span>
             <span className="navbar-university">{user?.university}</span>
           </div>
         </div>

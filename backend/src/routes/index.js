@@ -5,6 +5,7 @@ const gameController = require('../controllers/gameController');
 const leaderboardController = require('../controllers/leaderboardController');
 const teacherController = require('../controllers/teacherController');
 const userController = require('../controllers/userController');
+const subjectController = require('../controllers/subjectController');
 
 const router = express.Router();
 
@@ -26,5 +27,9 @@ router.get('/teacher/stats', auth(true), teacherController.getStats);
 
 // User
 router.put('/user/profile', auth(true), userController.updateProfile);
+
+// Subjects (Materias)
+router.get('/subjects', auth(true), subjectController.getStudentSubjects);
+router.get('/teacher/subjects', auth(true), subjectController.getTeacherSubjects);
 
 module.exports = router;

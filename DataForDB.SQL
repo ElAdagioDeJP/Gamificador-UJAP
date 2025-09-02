@@ -4,7 +4,7 @@ USE studybooster_db;
 -- Deshabilitar temporalmente la verificación de claves foráneas para evitar errores de orden
 SET FOREIGN_KEY_CHECKS=0;
 
--- Limpiar tablas existentes antes de insertar nuevos datos (opcional, pero recomendado para ejecuciones limpias)
+-- Limpiar tablas existentes antes de insertar nuevos datos
 TRUNCATE TABLE Tareas_Personales;
 TRUNCATE TABLE Usuario_Escaneos_QR;
 TRUNCATE TABLE Codigos_QR;
@@ -19,8 +19,9 @@ TRUNCATE TABLE Duelos;
 TRUNCATE TABLE Usuario_Misiones;
 TRUNCATE TABLE Misiones;
 TRUNCATE TABLE Inscripciones;
+TRUNCATE TABLE Profesor_Materias; -- NUEVO: Limpiar la tabla de relación
 TRUNCATE TABLE Materias;
-TRUNCATE TABLE Profesores;
+-- TRUNCATE TABLE Profesores; -- ELIMINADO: La tabla ya no existe
 TRUNCATE TABLE Usuarios;
 
 -- Habilitar nuevamente la verificación de claves foráneas
@@ -28,101 +29,107 @@ SET FOREIGN_KEY_CHECKS=1;
 
 -- INICIO DE LA INSERCIÓN DE DATOS --
 
--- 1. Tabla de Profesores
--- Creamos primero a los profesores que coordinarán las materias.
-INSERT INTO `Profesores` (`id_profesor`, `nombre_completo`, `email_institucional`) VALUES
-(1, 'Dr. Ricardo Paredes', 'ricardo.paredes@universidad.edu'),
-(2, 'Dra. Elena Villa', 'elena.villa@universidad.edu'),
-(3, 'Ing. Carlos Mendez', 'carlos.mendez@universidad.edu'),
-(4, 'Lic. Sofia Castillo', 'sofia.castillo@universidad.edu'),
-(5, 'Dr. Alberto Rios', 'alberto.rios@universidad.edu');
-
--- 2. Tabla de Usuarios (Estudiantes y el rol de profesor)
--- La contraseña para todos es '$2a$10$Q5J5U59axMrmWnDTfcy5G..z9Dof3sJHOOGzb6i5LDOs3GwSN5.mC'
+-- 1. Tabla de Usuarios (Estudiantes y Profesores unificados)
+-- La contraseña para todos es '$2a$10$Q5J5U59axMrmWnDTfcy5G..z9Dof3sJHOOGzb6i5LDOs3GwSN5.mC' (bcrypt hash para 'password123')
 INSERT INTO `Usuarios` (`id_usuario`, `nombre_usuario`, `nombre_completo`, `email_institucional`, `rol`, `contrasena_hash`, `puntos_actuales`, `experiencia_total`, `nivel`, `racha_dias_consecutivos`, `fecha_ultima_actividad`, `fecha_creacion`) VALUES
--- Profesores (con rol)
-(1, 'profe_paredes', 'Dr. Ricardo Paredes', 'ricardo.paredes@universidad.edu', 'profesor', '$2a$10$Q5J5U59axMrmWnDTfcy5G..z9Dof3sJHOOGzb6i5LDOs3GwSN5.mC', 100, 1000, 10, 5, '2025-08-28', '2024-01-10 08:00:00'),
-(2, 'profe_villa', 'Dra. Elena Villa', 'elena.villa@universidad.edu', 'profesor', '$2a$10$Q5J5U59axMrmWnDTfcy5G..z9Dof3sJHOOGzb6i5LDOs3GwSN5.mC', 100, 1000, 10, 3, '2025-08-27', '2024-01-10 08:05:00'),
-(3, 'profe_mendez', 'Ing. Carlos Mendez', 'carlos.mendez@universidad.edu', 'profesor', '$2a$10$Q5J5U59axMrmWnDTfcy5G..z9Dof3sJHOOGzb6i5LDOs3GwSN5.mC', 100, 1000, 10, 10, '2025-08-29', '2024-01-10 08:10:00'),
+-- Profesores
+(1, 'profe_paredes', 'Dr. Ricardo Paredes', 'ricardo.paredes@universidad.edu', 'profesor', '$2a$10$Q5J5U59axMrmWnDTfcy5G..z9Dof3sJHOOGzb6i5LDOs3GwSN5.mC', 100, 1000, 10, 5, '2025-09-01', '2024-01-10 08:00:00'),
+(2, 'profe_villa', 'Dra. Elena Villa', 'elena.villa@universidad.edu', 'profesor', '$2a$10$Q5J5U59axMrmWnDTfcy5G..z9Dof3sJHOOGzb6i5LDOs3GwSN5.mC', 100, 1000, 10, 3, '2025-08-30', '2024-01-10 08:05:00'),
+(3, 'profe_mendez', 'Ing. Carlos Mendez', 'carlos.mendez@universidad.edu', 'profesor', '$2a$10$Q5J5U59axMrmWnDTfcy5G..z9Dof3sJHOOGzb6i5LDOs3GwSN5.mC', 100, 1000, 10, 10, '2025-09-02', '2024-01-10 08:10:00'),
+(14, 'profe_castillo', 'Lic. Sofia Castillo', 'sofia.castillo@universidad.edu', 'profesor', '$2a$10$Q5J5U59axMrmWnDTfcy5G..z9Dof3sJHOOGzb6i5LDOs3GwSN5.mC', 100, 1000, 10, 8, '2025-09-02', '2024-01-10 08:15:00'), -- NUEVO: Profesor añadido para consistencia
+(15, 'profe_rios', 'Dr. Alberto Rios', 'alberto.rios@universidad.edu', 'profesor', '$2a$10$Q5J5U59axMrmWnDTfcy5G..z9Dof3sJHOOGzb6i5LDOs3GwSN5.mC', 100, 1000, 10, 12, '2025-09-01', '2024-01-10 08:20:00'), -- NUEVO: Profesor añadido para consistencia
 -- Estudiantes
-(4, 'ana_dev', 'Ana Martínez', 'ana.martinez@email.edu', 'estudiante', '$2a$10$Q5J5U59axMrmWnDTfcy5G..z9Dof3sJHOOGzb6i5LDOs3GwSN5.mC', 1520, 12500, 12, 15, '2025-08-29', '2024-02-01 10:20:00'),
-(5, 'luis_gamer', 'Luis González', 'luis.gonzalez@email.edu', 'estudiante', '$2a$10$Q5J5U59axMrmWnDTfcy5G..z9Dof3sJHOOGzb6i5LDOs3GwSN5.mC', 850, 7800, 8, 3, '2025-08-28', '2024-02-01 11:00:00'),
-(6, 'lau_estudia', 'Laura Rodríguez', 'laura.rodriguez@email.edu', 'estudiante', '$2a$10$Q5J5U59axMrmWnDTfcy5G..z9Dof3sJHOOGzb6i5LDOs3GwSN5.mC', 2300, 18900, 15, 32, '2025-08-29', '2024-02-02 09:00:00'),
+(4, 'ana_dev', 'Ana Martínez', 'ana.martinez@email.edu', 'estudiante', '$2a$10$Q5J5U59axMrmWnDTfcy5G..z9Dof3sJHOOGzb6i5LDOs3GwSN5.mC', 1520, 12500, 12, 15, '2025-09-02', '2024-02-01 10:20:00'),
+(5, 'luis_gamer', 'Luis González', 'luis.gonzalez@email.edu', 'estudiante', '$2a$10$Q5J5U59axMrmWnDTfcy5G..z9Dof3sJHOOGzb6i5LDOs3GwSN5.mC', 850, 7800, 8, 3, '2025-09-01', '2024-02-01 11:00:00'),
+(6, 'lau_estudia', 'Laura Rodríguez', 'laura.rodriguez@email.edu', 'estudiante', '$2a$10$Q5J5U59axMrmWnDTfcy5G..z9Dof3sJHOOGzb6i5LDOs3GwSN5.mC', 2300, 18900, 15, 32, '2025-09-02', '2024-02-02 09:00:00'),
 (7, 'pedro_sql', 'Pedro Sánchez', 'pedro.sanchez@email.edu', 'estudiante', '$2a$10$Q5J5U59axMrmWnDTfcy5G..z9Dof3sJHOOGzb6i5LDOs3GwSN5.mC', 450, 3200, 4, 0, '2025-08-20', '2024-02-03 14:00:00'),
-(8, 'sofia_red', 'Sofía Pérez', 'sofia.perez@email.edu', 'estudiante', '$2a$10$Q5J5U59axMrmWnDTfcy5G..z9Dof3sJHOOGzb6i5LDOs3GwSN5.mC', 1100, 9500, 9, 8, '2025-08-29', '2024-02-05 16:30:00'),
-(9, 'david_pro', 'David Gómez', 'david.gomez@email.edu', 'estudiante', '$2a$10$Q5J5U59axMrmWnDTfcy5G..z9Dof3sJHOOGzb6i5LDOs3GwSN5.mC', 300, 2500, 3, 2, '2025-08-27', '2024-02-06 18:00:00'),
-(10, 'maria_ux', 'María Díaz', 'maria.diaz@email.edu', 'estudiante', '$2a$10$Q5J5U59axMrmWnDTfcy5G..z9Dof3sJHOOGzb6i5LDOs3GwSN5.mC', 1800, 15000, 13, 20, '2025-08-29', '2024-02-10 12:00:00'),
+(8, 'sofia_red', 'Sofía Pérez', 'sofia.perez@email.edu', 'estudiante', '$2a$10$Q5J5U59axMrmWnDTfcy5G..z9Dof3sJHOOGzb6i5LDOs3GwSN5.mC', 1100, 9500, 9, 8, '2025-09-02', '2024-02-05 16:30:00'),
+(9, 'david_pro', 'David Gómez', 'david.gomez@email.edu', 'estudiante', '$2a$10$Q5J5U59axMrmWnDTfcy5G..z9Dof3sJHOOGzb6i5LDOs3GwSN5.mC', 300, 2500, 3, 2, '2025-08-30', '2024-02-06 18:00:00'),
+(10, 'maria_ux', 'María Díaz', 'maria.diaz@email.edu', 'estudiante', '$2a$10$Q5J5U59axMrmWnDTfcy5G..z9Dof3sJHOOGzb6i5LDOs3GwSN5.mC', 1800, 15000, 13, 20, '2025-09-02', '2024-02-10 12:00:00'),
 (11, 'carlos_byte', 'Carlos Ruiz', 'carlos.ruiz@email.edu', 'estudiante', '$2a$10$Q5J5U59axMrmWnDTfcy5G..z9Dof3sJHOOGzb6i5LDOs3GwSN5.mC', 75, 500, 1, 0, '2025-08-15', '2024-03-01 09:45:00'),
-(12, 'elena_code', 'Elena Fernández', 'elena.fernandez@email.edu', 'estudiante', '$2a$10$Q5J5U59axMrmWnDTfcy5G..z9Dof3sJHOOGzb6i5LDOs3GwSN5.mC', 920, 8100, 8, 5, '2025-08-29', '2024-03-02 11:15:00'),
-(13, 'javier_net', 'Javier Moreno', 'javier.moreno@email.edu', 'estudiante', '$2a$10$Q5J5U59axMrmWnDTfcy5G..z9Dof3sJHOOGzb6i5LDOs3GwSN5.mC', 640, 5500, 6, 1, '2025-08-28', '2024-03-05 17:00:00');
+(12, 'elena_code', 'Elena Fernández', 'elena.fernandez@email.edu', 'estudiante', '$2a$10$Q5J5U59axMrmWnDTfcy5G..z9Dof3sJHOOGzb6i5LDOs3GwSN5.mC', 920, 8100, 8, 5, '2025-09-02', '2024-03-02 11:15:00'),
+(13, 'javier_net', 'Javier Moreno', 'javier.moreno@email.edu', 'estudiante', '$2a$10$Q5J5U59axMrmWnDTfcy5G..z9Dof3sJHOOGzb6i5LDOs3GwSN5.mC', 640, 5500, 6, 1, '2025-09-01', '2024-03-05 17:00:00');
 
--- 3. Tabla de Materias
--- Asignamos las materias a los profesores coordinadores.
-INSERT INTO `Materias` (`id_materia`, `nombre_materia`, `id_profesor_coordinador`) VALUES
-(1, 'Bases de Datos Avanzadas', 1),
-(2, 'Inteligencia Artificial', 2),
-(3, 'Desarrollo de Software Seguro', 3),
-(4, 'Interacción Humano-Computador', 4),
-(5, 'Redes Neuronales y Deep Learning', 2),
-(6, 'Cálculo Multivariable', 5),
-(7, 'Estructuras de Datos', 3),
-(8, 'Física de Ondas', 1);
+-- 2. Tabla de Materias
+-- MODIFICADO: Se elimina la columna de profesor coordinador.
+INSERT INTO `Materias` (`id_materia`, `nombre_materia`) VALUES
+(1, 'Bases de Datos Avanzadas'),
+(2, 'Inteligencia Artificial'),
+(3, 'Desarrollo de Software Seguro'),
+(4, 'Interacción Humano-Computador'),
+(5, 'Redes Neuronales y Deep Learning'),
+(6, 'Cálculo Multivariable'),
+(7, 'Estructuras de Datos'),
+(8, 'Física de Ondas');
+
+-- 3. NUEVO: Tabla de Relación Profesor_Materias
+-- Creamos la relación muchos a muchos.
+INSERT INTO `Profesor_Materias` (`id_profesor`, `id_materia`) VALUES
+(1, 1), -- Dr. Paredes -> Bases de Datos
+(1, 8), -- Dr. Paredes -> Física
+(2, 2), -- Dra. Villa -> IA
+(2, 5), -- Dra. Villa -> Redes Neuronales
+(3, 3), -- Ing. Mendez -> Desarrollo Seguro
+(3, 7), -- Ing. Mendez -> Estructuras de Datos
+(14, 4),-- Lic. Castillo -> IHC
+(15, 6),-- Dr. Rios -> Cálculo
+-- Ejemplo de co-enseñanza
+(1, 7); -- Dr. Paredes también apoya en Estructuras de Datos
 
 -- 4. Tabla de Inscripciones
--- Inscribimos a los estudiantes en varias materias para el período actual.
-INSERT INTO `Inscripciones` (`id_usuario`, `id_materia`, `periodo_academico`) VALUES
-(4, 1, '2025-02'), (4, 3, '2025-02'), (4, 7, '2025-02'),
-(5, 2, '2025-02'), (5, 5, '2025-02'), (5, 4, '2025-02'),
-(6, 1, '2025-02'), (6, 2, '2025-02'), (6, 3, '2025-02'), (6, 5, '2025-02'),
-(7, 1, '2025-02'), (7, 6, '2025-02'), (7, 8, '2025-02'),
-(8, 3, '2025-02'), (8, 4, '2025-02'), (8, 7, '2025-02'),
-(9, 6, '2025-02'), (9, 8, '2025-02'),
-(10, 4, '2025-02'), (10, 1, '2025-02'), (10, 2, '2025-02'),
-(11, 7, '2025-02'), (11, 6, '2025-02'),
-(12, 3, '2025-02'), (12, 5, '2025-02'), (12, 7, '2025-02'),
-(13, 1, '2025-02'), (13, 8, '2025-02');
+-- MODIFICADO: Añadimos la columna calificacion_final, mayormente NULL para cursos en progreso.
+INSERT INTO `Inscripciones` (`id_usuario`, `id_materia`, `periodo_academico`, `calificacion_final`) VALUES
+(4, 1, '2025-02', NULL), (4, 3, '2025-02', 17.50), (4, 7, '2025-02', NULL),
+(5, 2, '2025-02', NULL), (5, 5, '2025-02', NULL), (5, 4, '2025-02', NULL),
+(6, 1, '2025-02', 19.80), (6, 2, '2025-02', 18.00), (6, 3, '2025-02', NULL), (6, 5, '2025-02', NULL),
+(7, 1, '2025-02', NULL), (7, 6, '2025-02', 14.00), (7, 8, '2025-02', NULL),
+(8, 3, '2025-02', NULL), (8, 4, '2025-02', NULL), (8, 7, '2025-02', NULL),
+(9, 6, '2025-02', NULL), (9, 8, '2025-02', NULL),
+(10, 4, '2025-02', NULL), (10, 1, '2025-02', NULL), (10, 2, '2025-02', NULL),
+(11, 7, '2025-02', NULL), (11, 6, '2025-02', NULL),
+(12, 3, '2025-02', NULL), (12, 5, '2025-02', NULL), (12, 7, '2025-02', NULL),
+(13, 1, '2025-02', NULL), (13, 8, '2025-02', NULL);
 
--- 5. Tabla de Misiones (Diarias y Tareas de Profesores)
-INSERT INTO `Misiones` (`id_mision`, `titulo`, `descripcion`, `tipo_mision`, `dificultad`, `id_materia_asociada`, `id_profesor_creador`, `puntos_recompensa`, `experiencia_recompensa`, `bono_nota`, `req_nivel_minimo`, `req_racha_minima`) VALUES
--- Misiones Diarias
-(1, 'Inicio de Sesión Diario', 'Ingresa a la plataforma para reclamar tu recompensa diaria.', 'DIARIA', NULL, NULL, NULL, 20, 50, 0.00, 1, 0),
-(2, 'Completa tu primera tarea del día', 'Finaliza cualquier tarea o misión para ganar un bono.', 'DIARIA', NULL, NULL, NULL, 30, 100, 0.00, 1, 0),
-(3, 'Duelo Amistoso', 'Reta a un compañero a un duelo de conocimiento.', 'DIARIA', NULL, NULL, NULL, 50, 150, 0.00, 2, 0),
--- Tareas de Bases de Datos Avanzadas
-(4, 'Diseño de Modelo ER', 'Diseñar el Modelo Entidad-Relación para un sistema de biblioteca.', 'TAREA', 'BASICA', 1, 1, 100, 250, 0.00, 3, 0),
-(5, 'Optimización de Consultas SQL', 'Analizar y optimizar 3 consultas SQL lentas proporcionadas en el material.', 'TAREA', 'AVANZADA', 1, 1, 250, 600, 0.50, 8, 5),
-(6, 'Proyecto Final: Sharding', 'Implementar una estrategia de sharding en una base de datos de prueba con más de 1 millón de registros.', 'TAREA', 'EPICA', 1, 1, 800, 2000, 1.00, 12, 10),
--- Tareas de IA
-(7, 'Implementar A*', 'Desarrollar un algoritmo A* para resolver un laberinto.', 'TAREA', 'BASICA', 2, 2, 120, 300, 0.00, 4, 0),
-(8, 'Clasificador de Sentimientos', 'Crear un clasificador de sentimientos usando una red neuronal recurrente (RNN).', 'TAREA', 'AVANZADA', 5, 2, 300, 750, 0.50, 9, 0),
--- Tareas de Desarrollo Seguro
-(9, 'Análisis de Vulnerabilidades XSS', 'Identificar y corregir 3 vulnerabilidades de Cross-Site Scripting (XSS) en una aplicación web de prueba.', 'TAREA', 'AVANZADA', 3, 3, 280, 700, 0.00, 7, 3),
--- Tareas de Cálculo
-(10, 'Integrales Dobles', 'Resolver la lista de 10 problemas de integrales dobles sobre regiones generales.', 'TAREA', 'BASICA', 6, 5, 150, 400, 0.00, 2, 0);
+-- 5. Tabla de Misiones (Diarias y Tareas)
+-- MODIFICADO: Añadimos la columna peso_en_calificacion.
+INSERT INTO `Misiones` (`id_mision`, `titulo`, `descripcion`, `tipo_mision`, `dificultad`, `id_materia_asociada`, `id_profesor_creador`, `puntos_recompensa`, `experiencia_recompensa`, `peso_en_calificacion`, `bono_nota`, `req_nivel_minimo`, `req_racha_minima`) VALUES
+-- Misiones Diarias (peso 0)
+(1, 'Inicio de Sesión Diario', 'Ingresa para reclamar tu recompensa diaria.', 'DIARIA', NULL, NULL, NULL, 20, 50, 0.00, 0.00, 1, 0),
+(2, 'Completa tu primera tarea del día', 'Finaliza cualquier tarea para ganar un bono.', 'DIARIA', NULL, NULL, NULL, 30, 100, 0.00, 0.00, 1, 0),
+(3, 'Duelo Amistoso', 'Reta a un compañero a un duelo.', 'DIARIA', NULL, NULL, NULL, 50, 150, 0.00, 0.00, 2, 0),
+-- Tareas con peso académico
+(4, 'Diseño de Modelo ER', 'Diseñar el Modelo E-R para un sistema de biblioteca.', 'TAREA', 'BASICA', 1, 1, 100, 250, 20.00, 0.00, 3, 0),
+(5, 'Optimización de Consultas SQL', 'Analizar y optimizar 3 consultas SQL lentas.', 'TAREA', 'AVANZADA', 1, 1, 250, 600, 30.00, 0.50, 8, 5),
+(6, 'Proyecto Final: Sharding', 'Implementar sharding en una BD de prueba.', 'TAREA', 'EPICA', 1, 1, 800, 2000, 50.00, 1.00, 12, 10),
+(7, 'Implementar A*', 'Desarrollar un algoritmo A* para resolver un laberinto.', 'TAREA', 'BASICA', 2, 2, 120, 300, 25.00, 0.00, 4, 0),
+(8, 'Clasificador de Sentimientos', 'Crear un clasificador de sentimientos usando RNN.', 'TAREA', 'AVANZADA', 5, 2, 300, 750, 40.00, 0.50, 9, 0),
+(9, 'Análisis de Vulnerabilidades XSS', 'Identificar y corregir 3 vulnerabilidades XSS.', 'TAREA', 'AVANZADA', 3, 3, 280, 700, 35.00, 0.00, 7, 3),
+(10, 'Integrales Dobles', 'Resolver 10 problemas de integrales dobles.', 'TAREA', 'BASICA', 6, 15, 150, 400, 30.00, 0.00, 2, 0);
 
 -- 6. Progreso de Misiones por Usuario
-INSERT INTO `Usuario_Misiones` (`id_usuario`, `id_mision`, `fecha_completada`, `estado`) VALUES
+-- MODIFICADO: Añadimos calificacion_obtenida para las tareas completadas.
+INSERT INTO `Usuario_Misiones` (`id_usuario`, `id_mision`, `fecha_completada`, `estado`, `calificacion_obtenida`) VALUES
 -- Ana (ID 4)
-(4, 1, '2025-08-29 08:10:00', 'COMPLETADA'),
-(4, 4, '2025-08-27 15:30:00', 'COMPLETADA'),
-(4, 5, '2025-08-29 11:00:00', 'COMPLETADA'),
-(4, 9, '2025-08-28 18:00:00', 'COMPLETADA'),
-(4, 6, NOW(), 'EN_PROGRESO'),
+(4, 1, '2025-09-02 08:10:00', 'COMPLETADA', NULL), -- Misión diaria, sin nota
+(4, 4, '2025-08-27 15:30:00', 'COMPLETADA', 18.00), -- Tarea de BD
+(4, 5, '2025-08-29 11:00:00', 'COMPLETADA', 19.50), -- Tarea de BD
+(4, 9, '2025-08-28 18:00:00', 'COMPLETADA', 16.00), -- Tarea de Seg.
+(4, 6, NULL, 'EN_PROGRESO', NULL), -- Tarea de BD
 -- Luis (ID 5)
-(5, 1, '2025-08-28 09:00:00', 'COMPLETADA'),
-(5, 7, '2025-08-26 12:00:00', 'COMPLETADA'),
-(5, 8, NOW(), 'ASIGNADA'),
-(5, 3, '2025-08-28 14:00:00', 'COMPLETADA'),
+(5, 1, '2025-09-01 09:00:00', 'COMPLETADA', NULL),
+(5, 7, '2025-08-26 12:00:00', 'COMPLETADA', 15.50), -- Tarea de IA
+(5, 8, NULL, 'ASIGNADA', NULL),
+(5, 3, '2025-08-28 14:00:00', 'COMPLETADA', NULL),
 -- Laura (ID 6)
-(6, 1, '2025-08-29 07:30:00', 'COMPLETADA'),
-(6, 2, '2025-08-29 10:00:00', 'COMPLETADA'),
-(6, 4, '2025-08-25 19:00:00', 'COMPLETADA'),
-(6, 5, '2025-08-29 09:55:00', 'COMPLETADA'),
-(6, 7, '2025-08-24 20:00:00', 'COMPLETADA'),
-(6, 8, '2025-08-28 21:00:00', 'COMPLETADA'),
-(6, 9, NOW(), 'EN_PROGRESO'),
+(6, 1, '2025-09-02 07:30:00', 'COMPLETADA', NULL),
+(6, 2, '2025-09-02 10:00:00', 'COMPLETADA', NULL),
+(6, 4, '2025-08-25 19:00:00', 'COMPLETADA', 20.00),
+(6, 5, '2025-08-29 09:55:00', 'COMPLETADA', 19.80),
+(6, 7, '2025-08-24 20:00:00', 'COMPLETADA', 18.00),
+(6, 8, '2025-08-28 21:00:00', 'COMPLETADA', 17.50),
+(6, 9, NULL, 'EN_PROGRESO', NULL),
 -- Pedro (ID 7)
-(7, 10, '2025-08-20 16:00:00', 'COMPLETADA');
+(7, 10, '2025-08-20 16:00:00', 'COMPLETADA', 14.00); -- Tarea de Cálculo
 
 -- 7. Banco de Preguntas para Duelos
 INSERT INTO `Preguntas_Duelo` (`id_pregunta`, `id_materia`, `enunciado`, `dificultad`) VALUES

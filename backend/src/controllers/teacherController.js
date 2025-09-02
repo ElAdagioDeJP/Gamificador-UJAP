@@ -6,11 +6,11 @@ exports.listStudents = async (req, res, next) => {
     const teacherId = req.user.id;
     const [rows] = await sequelize.query(
       `SELECT DISTINCT u.id_usuario, u.nombre_completo, u.email_institucional, u.nivel, u.puntos_actuales,
-              u.racha_dias_consecutivos, u.fecha_ultima_actividad
+              u.racha_dias_consecutivos, u.fecha_ultima_actividad, u.avatar_url
          FROM Usuarios u
          JOIN Inscripciones i ON i.id_usuario = u.id_usuario
-         JOIN Materias m ON m.id_materia = i.id_materia
-        WHERE m.id_profesor_coordinador = :teacherId
+         JOIN Profesor_Materias pm ON pm.id_materia = i.id_materia
+        WHERE pm.id_profesor = :teacherId
           AND u.rol = 'estudiante'`,
       { replacements: { teacherId } }
     );
@@ -19,7 +19,7 @@ exports.listStudents = async (req, res, next) => {
       id: u.id_usuario,
       name: u.nombre_completo,
       email: u.email_institucional,
-      avatar: '/placeholder.svg?height=50&width=50',
+  avatar: u.avatar_url || '/placeholder.svg?height=50&width=50',
       level: Number(u.nivel) || 1,
       points: Number(u.puntos_actuales) || 0,
       streak: Number(u.racha_dias_consecutivos) || 0,
@@ -105,8 +105,8 @@ exports.getStats = async (req, res, next) => {
     const [[counts]] = await sequelize.query(
       `SELECT 
         (SELECT COUNT(DISTINCT i.id_usuario)
-           FROM Inscripciones i JOIN Materias m ON m.id_materia = i.id_materia
-          WHERE m.id_profesor_coordinador = :teacherId) AS totalStudents,
+           FROM Inscripciones i JOIN Profesor_Materias pm ON pm.id_materia = i.id_materia
+          WHERE pm.id_profesor = :teacherId) AS totalStudents,
         (SELECT COUNT(*) FROM Misiones WHERE id_profesor_creador = :teacherId AND tipo_mision = 'TAREA') AS totalAssignments,
         (SELECT COUNT(*) FROM Usuario_Misiones um JOIN Misiones mi ON mi.id_mision = um.id_mision WHERE mi.id_profesor_creador = :teacherId AND um.estado <> 'COMPLETADA') AS pendingSubmissions` , { replacements: { teacherId } });
 

@@ -4,39 +4,41 @@ USE studybooster_db;
 
 -- TABLAS PRINCIPALES --
 
--- Tabla de Usuarios (Estudiantes)
--- Almacena la información central de cada estudiante, incluyendo su progreso en el juego.
+-- Tabla de Usuarios (Unificada para Estudiantes y Profesores)
+-- Almacena la información central de cada usuario. Se elimina la tabla `Profesores` para simplificar.
 CREATE TABLE Usuarios (
   id_usuario INT AUTO_INCREMENT PRIMARY KEY,
-  nombre_usuario VARCHAR(50) NOT NULL UNIQUE COMMENT 'Nickname para duelos y tablas de clasificación [cite: 22]',
+  nombre_usuario VARCHAR(50) NOT NULL UNIQUE COMMENT 'Nickname para duelos y tablas de clasificación',
   nombre_completo VARCHAR(255) NOT NULL,
   email_institucional VARCHAR(255) NOT NULL UNIQUE,
   rol ENUM('estudiante','profesor') NOT NULL DEFAULT 'estudiante',
   contrasena_hash VARCHAR(255) NOT NULL,
-  puntos_actuales INT DEFAULT 0 COMMENT 'Puntos disponibles para canjear o apostar [cite: 13]',
-  experiencia_total BIGINT DEFAULT 0 COMMENT 'Experiencia acumulada para subir de nivel [cite: 8]',
-  nivel INT DEFAULT 1 COMMENT 'Nivel del usuario basado en la experiencia [cite: 8]',
-  racha_dias_consecutivos INT DEFAULT 0 COMMENT 'Contador de días seguidos completando misiones diarias [cite: 3, 5]',
+  puntos_actuales INT DEFAULT 0 COMMENT 'Puntos disponibles para canjear o apostar',
+  experiencia_total BIGINT DEFAULT 0 COMMENT 'Experiencia acumulada para subir de nivel',
+  nivel INT DEFAULT 1 COMMENT 'Nivel del usuario basado en la experiencia',
+  racha_dias_consecutivos INT DEFAULT 0 COMMENT 'Contador de días seguidos completando misiones diarias',
   fecha_ultima_actividad DATE COMMENT 'Usada para calcular y reiniciar la racha diaria',
   fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB;
-
--- Tabla de Profesores
--- Podrían ser un rol dentro de la tabla Usuarios, pero una tabla separada permite atributos específicos.
-CREATE TABLE Profesores (
-  id_profesor INT AUTO_INCREMENT PRIMARY KEY,
-  nombre_completo VARCHAR(255) NOT NULL,
-  email_institucional VARCHAR(255) NOT NULL UNIQUE
 ) ENGINE=InnoDB;
 
 -- Tabla de Materias
 -- Las materias son el eje para la clasificación y las misiones específicas.
 CREATE TABLE Materias (
   id_materia INT AUTO_INCREMENT PRIMARY KEY,
-  nombre_materia VARCHAR(255) NOT NULL,
-  id_profesor_coordinador INT,
-  FOREIGN KEY (id_profesor_coordinador) REFERENCES Profesores(id_profesor)
+  nombre_materia VARCHAR(255) NOT NULL UNIQUE
 ) ENGINE=InnoDB;
+
+-- NUEVA TABLA: Vincula Profesores y Materias (Muchos a Muchos)
+-- Permite que una materia tenga varios profesores y viceversa.
+CREATE TABLE Profesor_Materias (
+    id_profesor_materia INT AUTO_INCREMENT PRIMARY KEY,
+    id_profesor INT,
+    id_materia INT,
+    FOREIGN KEY (id_profesor) REFERENCES Usuarios(id_usuario),
+    FOREIGN KEY (id_materia) REFERENCES Materias(id_materia),
+    UNIQUE(id_profesor, id_materia)
+) ENGINE=InnoDB;
+
 
 -- Tabla de Inscripciones
 -- Vincula a los estudiantes con las materias que están cursando en un período académico.
@@ -45,6 +47,7 @@ CREATE TABLE Inscripciones (
   id_usuario INT,
   id_materia INT,
   periodo_academico VARCHAR(20),
+  calificacion_final DECIMAL(5,2) NULL COMMENT 'NUEVO: Nota final ponderada del estudiante en la materia.',
   UNIQUE(id_usuario, id_materia, periodo_academico),
   FOREIGN KEY (id_usuario) REFERENCES Usuarios(id_usuario),
   FOREIGN KEY (id_materia) REFERENCES Materias(id_materia)
@@ -54,25 +57,27 @@ CREATE TABLE Inscripciones (
 -- TABLAS DEL SISTEMA DE MISIONES --
 
 -- Tabla de Misiones
--- Contiene todas las misiones, tanto las diarias como las creadas por profesores.
+-- Contiene todas las misiones, tanto las diarias como las TAREAS creadas por profesores.
 CREATE TABLE Misiones (
   id_mision INT AUTO_INCREMENT PRIMARY KEY,
   titulo VARCHAR(255) NOT NULL,
   descripcion TEXT,
-  tipo_mision ENUM('DIARIA', 'TAREA') NOT NULL COMMENT 'Diferencia misiones generales de tareas asignadas [cite: 4, 11]',
-  dificultad ENUM('BASICA', 'AVANZADA', 'EPICA') COMMENT 'Dificultad escalable para tareas [cite: 12]',
-  id_materia_asociada INT NULL COMMENT 'Vincula la misión a una materia específica',
+  tipo_mision ENUM('DIARIA', 'TAREA') NOT NULL,
+  dificultad ENUM('BASICA', 'AVANZADA', 'EPICA'),
+  id_materia_asociada INT NULL COMMENT 'Vincula la misión/tarea a una materia específica',
   id_profesor_creador INT NULL COMMENT 'Profesor que asigna la tarea',
-  -- Recompensas
+  -- Recompensas de Gamificación
   puntos_recompensa INT DEFAULT 0,
   experiencia_recompensa INT DEFAULT 0,
-  bono_nota DECIMAL(3,2) DEFAULT 0.00 COMMENT 'Bonificación sobre la nota final (ej. 0.5) [cite: 12]',
-  -- Requisitos para misiones épicas [cite: 16]
+  -- Recompensas Académicas
+  peso_en_calificacion DECIMAL(5,2) DEFAULT 0.00 COMMENT 'NUEVO: Peso de la tarea en la calificación final (ej. 20.00 para 20%)',
+  bono_nota DECIMAL(3,2) DEFAULT 0.00 COMMENT 'Bonificación extra sobre la nota final (ej. 0.5)',
+  -- Requisitos para misiones épicas
   req_nivel_minimo INT DEFAULT 1,
   req_racha_minima INT DEFAULT 0,
   req_puntos_minimos INT DEFAULT 0,
   FOREIGN KEY (id_materia_asociada) REFERENCES Materias(id_materia),
-  FOREIGN KEY (id_profesor_creador) REFERENCES Profesores(id_profesor)
+  FOREIGN KEY (id_profesor_creador) REFERENCES Usuarios(id_usuario) -- MODIFICADO: Ahora referencia a Usuarios
 ) ENGINE=InnoDB;
 
 -- Tabla de Progreso de Misiones por Usuario
@@ -81,40 +86,36 @@ CREATE TABLE Usuario_Misiones (
   id_usuario_mision INT AUTO_INCREMENT PRIMARY KEY,
   id_usuario INT,
   id_mision INT,
-  fecha_completada TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  fecha_completada TIMESTAMP NULL,
   estado ENUM('ASIGNADA', 'EN_PROGRESO', 'COMPLETADA', 'VENCIDA') DEFAULT 'ASIGNADA',
+  calificacion_obtenida DECIMAL(5,2) NULL COMMENT 'NUEVO: Nota que el profesor asigna a esta tarea completada.',
   FOREIGN KEY (id_usuario) REFERENCES Usuarios(id_usuario),
   FOREIGN KEY (id_mision) REFERENCES Misiones(id_mision)
 ) ENGINE=InnoDB;
 
 
--- TABLAS DEL SISTEMA DE DUELOS --
+-- TABLAS DEL SISTEMA DE DUELOS (sin cambios relevantes) --
 
--- Tabla de Duelos
--- Almacena la información de cada partida, sea 1v1 o cooperativa.
 CREATE TABLE Duelos (
   id_duelo INT AUTO_INCREMENT PRIMARY KEY,
-  tipo_duelo ENUM('CLASICO', 'COOPERATIVO') NOT NULL COMMENT '[cite: 18, 20]',
+  tipo_duelo ENUM('CLASICO', 'COOPERATIVO') NOT NULL,
   id_materia INT,
   estado ENUM('PENDIENTE', 'EN_JUEGO', 'FINALIZADO', 'CANCELADO') NOT NULL,
   fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  id_ganador INT NULL COMMENT 'Puede ser id_usuario o id_equipo (si se implementan equipos)',
-  puntos_apostados INT NOT NULL COMMENT 'Cantidad de puntos en juego por cada jugador [cite: 23]',
+  id_ganador INT NULL,
+  puntos_apostados INT NOT NULL,
   FOREIGN KEY (id_materia) REFERENCES Materias(id_materia)
 ) ENGINE=InnoDB;
 
--- Tabla de Participantes en Duelos
--- Vincula a los usuarios con los duelos en los que participan.
 CREATE TABLE Duelo_Participantes (
   id_participante_duelo INT AUTO_INCREMENT PRIMARY KEY,
   id_duelo INT,
   id_usuario INT,
-  equipo VARCHAR(50) NULL COMMENT 'Para duelos cooperativos',
+  equipo VARCHAR(50) NULL,
   puntuacion_final INT DEFAULT 0,
   FOREIGN KEY (id_duelo) REFERENCES Duelos(id_duelo),
   FOREIGN KEY (id_usuario) REFERENCES Usuarios(id_usuario)
 ) ENGINE=InnoDB;
-
 -- Banco de Preguntas para Duelos
 CREATE TABLE Preguntas_Duelo (
   id_pregunta INT AUTO_INCREMENT PRIMARY KEY,

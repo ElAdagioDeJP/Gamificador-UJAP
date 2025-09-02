@@ -5,6 +5,7 @@ const cors = require('cors');
 const routes = require('./routes');
 const notFound = require('./middlewares/notFound');
 const errorHandler = require('./middlewares/errorHandler');
+const path = require('path');
 
 const app = express();
 
@@ -35,6 +36,9 @@ app.get('/api/health', (req, res) => res.json({ status: 'ok' }));
 
 // API routes
 app.use('/api', routes);
+
+// Static assets (avatars, etc.)
+app.use('/static', express.static(path.join(__dirname, '..', 'public')));
 
 // 404 and errors
 app.use(notFound);

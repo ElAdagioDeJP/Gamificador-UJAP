@@ -24,6 +24,14 @@ module.exports = (sequelize, DataTypes) => {
       unique: true,
       validate: { isEmail: true },
     },
+    sexo: {
+      type: DataTypes.ENUM('M', 'F'),
+      allowNull: true,
+    },
+    avatar_url: {
+      type: DataTypes.STRING(255),
+      allowNull: true,
+    },
     contrasena_hash: {
       type: DataTypes.STRING(255),
       allowNull: false,
@@ -64,6 +72,11 @@ module.exports = (sequelize, DataTypes) => {
           const salt = await bcrypt.genSalt(10);
           user.contrasena_hash = await bcrypt.hash(user.contrasena_hash, salt);
         }
+        // Set default avatar based on sexo if not provided
+        if (!user.avatar_url) {
+          if (user.sexo === 'M') user.avatar_url = '/static/avatars/male.svg';
+          else if (user.sexo === 'F') user.avatar_url = '/static/avatars/female.svg';
+        }
       },
       beforeUpdate: async (user) => {
         if (user.changed('contrasena_hash')) {
@@ -79,7 +92,7 @@ module.exports = (sequelize, DataTypes) => {
   };
 
   Usuario.prototype.toSafeJSON = function() {
-    const { contrasena_hash, ...rest } = this.toJSON();
+  const { contrasena_hash, ...rest } = this.toJSON();
     return rest;
   };
 

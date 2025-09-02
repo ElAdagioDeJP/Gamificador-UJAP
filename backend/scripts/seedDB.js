@@ -35,7 +35,30 @@ async function main() {
         throw err;
       }
     }
+    // Ensure we are using the right DB (in case baseSQL didn't include USE)
+    await connection.query("USE studybooster_db;");
+
+    // Ensure new columns exist (idempotent) - MySQL pre-8 doesn't support IF NOT EXISTS for columns
+    const [cols] = await connection.query(
+      `SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = ? AND TABLE_NAME = 'Usuarios'`,
+      ['studybooster_db']
+    );
+    const set = new Set(cols.map(r => r.COLUMN_NAME));
+    const alters = [];
+    if (!set.has('sexo')) alters.push("ADD COLUMN sexo ENUM('M','F') NULL AFTER email_institucional");
+    if (!set.has('avatar_url')) alters.push("ADD COLUMN avatar_url VARCHAR(255) NULL AFTER sexo");
+    if (alters.length) {
+      await connection.query(`ALTER TABLE Usuarios ${alters.join(', ')}`);
+    }
+
+    // Populate sample data
     await connection.query(dataSQL);
+
+    // Optional: set default avatar_url for existing users if sexo is set and avatar_url is NULL
+    await connection.query(`
+      UPDATE Usuarios SET avatar_url = CASE sexo WHEN 'M' THEN '/static/avatars/male.svg' WHEN 'F' THEN '/static/avatars/female.svg' ELSE avatar_url END
+      WHERE avatar_url IS NULL;
+    `);
     console.log('Database seeded successfully.');
   } finally {
     await connection.end();

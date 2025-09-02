@@ -4,6 +4,7 @@ import "../../styles/Sidebar.css"
 const TeacherSidebar = () => {
   const menuItems = [
     { path: "/teacher", label: "Dashboard", icon: "🏠" },
+  { path: "/teacher/subjects", label: "Materias", icon: "📚" },
     { path: "/teacher/students", label: "Estudiantes", icon: "👥" },
     { path: "/teacher/assignments", label: "Tareas", icon: "📝" },
     { path: "/teacher/grading", label: "Calificaciones", icon: "📊" },

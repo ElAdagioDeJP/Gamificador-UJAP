@@ -1,0 +1,12 @@
+.subjects-header { margin-bottom: 16px; }
+.subjects-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px; }
+.subject-card { padding: 16px; }
+.subject-header { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 12px; }
+.professors { display: flex; gap: 8px; flex-wrap: wrap; }
+.professor-chip { display: inline-flex; align-items: center; gap: 6px; padding: 4px 8px; border: 1px solid #e5e7eb; border-radius: 9999px; background: #fff; }
+.professor-chip img { width: 20px; height: 20px; border-radius: 9999px; }
+.assignments { display: flex; flex-direction: column; gap: 8px; }
+.assignment-row { display: flex; align-items: center; justify-content: space-between; padding: 8px 10px; border: 1px dashed #e5e7eb; border-radius: 8px; background: #fafafa; }
+.assignment-title { font-weight: 600; }
+.assignment-meta { font-size: 12px; color: #6b7280; }
+.assignment-weight { font-weight: 700; }

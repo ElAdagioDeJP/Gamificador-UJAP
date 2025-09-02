@@ -5,6 +5,7 @@ const Sidebar = () => {
   const menuItems = [
     { path: "/", label: "Dashboard", icon: "🏠" },
     { path: "/missions", label: "Misiones", icon: "🎯" },
+  { path: "/subjects", label: "Materias", icon: "📚" },
     { path: "/duels", label: "Duelos", icon: "⚔️" },
     { path: "/skills", label: "Habilidades", icon: "🧠" },
     { path: "/leaderboard", label: "Clasificación", icon: "🏆" },

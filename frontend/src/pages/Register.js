@@ -15,6 +15,7 @@ const Register = () => {
     confirmPassword: "",
     university: "",
     career: "",
+  sexo: "M",
   })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
@@ -41,7 +42,7 @@ const Register = () => {
       return
     }
 
-    const { confirmPassword, ...registerData } = formData
+  const { confirmPassword, ...registerData } = formData
     const result = await register(registerData)
 
     if (!result.success) {
@@ -128,6 +129,18 @@ const Register = () => {
                 required
               />
             </div>
+
+            <fieldset className="form-group">
+              <legend className="form-label">Sexo</legend>
+              <div className="form-row">
+                <label className="radio-inline" htmlFor="sexoM">
+                  <input id="sexoM" type="radio" name="sexo" value="M" checked={formData.sexo === 'M'} onChange={handleChange} /> Hombre
+                </label>
+                <label className="radio-inline" htmlFor="sexoF" style={{ marginLeft: '1rem' }}>
+                  <input id="sexoF" type="radio" name="sexo" value="F" checked={formData.sexo === 'F'} onChange={handleChange} /> Mujer
+                </label>
+              </div>
+            </fieldset>
 
             <div className="form-group">
               <label htmlFor="password" className="form-label">

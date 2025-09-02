@@ -60,6 +60,11 @@
   color: var(--pixel-text-white);
 }
 
+.navbar-separator {
+  margin: 0 8px;
+  color: rgba(255,255,255,0.6);
+}
+
 .navbar-university {
   font-family: "Press Start 2P", monospace;
   font-size: 0.75rem;
