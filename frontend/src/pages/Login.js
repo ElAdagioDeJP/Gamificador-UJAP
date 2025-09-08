@@ -133,9 +133,9 @@ const Login = () => {
                   </button>
                 </div>
                 <div className="demo-credentials">
-                  <strong>Email:</strong> student@university.edu
+                  <strong>Email:</strong> ana.martinez@email.edu
                   <br />
-                  <strong>Contraseña:</strong> password123
+                  <strong>Contraseña:</strong> marco1234
                 </div>
               </div>
 
@@ -147,9 +147,9 @@ const Login = () => {
                   </button>
                 </div>
                 <div className="demo-credentials">
-                  <strong>Email:</strong> profesor@university.edu
+                  <strong>Email:</strong> carlos.mendez@universidad.edu
                   <br />
-                  <strong>Contraseña:</strong> profesor123
+                  <strong>Contraseña:</strong> marco1234
                 </div>
               </div>
             </div>
