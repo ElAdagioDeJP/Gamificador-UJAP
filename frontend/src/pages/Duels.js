@@ -10,19 +10,54 @@ import "../styles/Duels.css"
 import "../styles/DuelModal.css"
 
 const Duels = () => {
+  // Declaración de todos los estados primero
+  const [duelModalOpen, setDuelModalOpen] = useState(false);
+  const [duelQuestions, setDuelQuestions] = useState([]);
+  const [currentQuestion, setCurrentQuestion] = useState(0);
+  const [selectedOption, setSelectedOption] = useState(null);
+  const [answerResult, setAnswerResult] = useState(null);
+  const [timer, setTimer] = useState(10);
+  const timerRef = useRef();
+  const [duelRoomId, setDuelRoomId] = useState(null);
+  const [duelOpponent, setDuelOpponent] = useState("");
+  const [duelScores, setDuelScores] = useState({});
+  const [waitingForOpponent, setWaitingForOpponent] = useState(false);
+  const [duelResultModal, setDuelResultModal] = useState(null);
+  // const waitingAudioRef = useRef(null);
   const { gameData, loading } = useGame();
   const { loadGameData } = useGame();
   const { user } = useAuth();
-  const [duelModalOpen, setDuelModalOpen] = useState(false)
-  const [duelQuestions, setDuelQuestions] = useState([])
-  const [currentQuestion, setCurrentQuestion] = useState(0)
-  const [selectedOption, setSelectedOption] = useState(null)
-  const [duelRoomId, setDuelRoomId] = useState(null)
-  const [duelOpponent, setDuelOpponent] = useState("")
-  const [duelScores, setDuelScores] = useState({})
-  const [waitingForOpponent, setWaitingForOpponent] = useState(false)
-  const [duelResultModal, setDuelResultModal] = useState(null)
-  // const waitingAudioRef = useRef(null)
+
+  // Temporizador para cada pregunta
+  useEffect(() => {
+    if (!duelModalOpen || !duelQuestions[currentQuestion]) return;
+    setTimer(10);
+    timerRef.current = setInterval(() => {
+      setTimer((prev) => {
+        if (prev <= 1) {
+          clearInterval(timerRef.current);
+          if (!selectedOption) {
+            setSelectedOption("timeout");
+            setTimeout(() => {
+              setSelectedOption(null);
+              setCurrentQuestion((prev) => prev + 1);
+              setTimer(10);
+            }, 1200);
+          } else {
+            // Si ya hay respuesta seleccionada, avanzar igual
+            setTimeout(() => {
+              setSelectedOption(null);
+              setAnswerResult(null);
+              setCurrentQuestion((prev) => prev + 1);
+              setTimer(10);
+            }, 1200);
+          }
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => clearInterval(timerRef.current);
+  }, [duelModalOpen, currentQuestion, selectedOption, duelQuestions]);
 
   if (loading) {
     return <LoadingSpinner />
@@ -100,6 +135,7 @@ const Duels = () => {
   // Recibir resultado de respuesta y avanzar pregunta
   socket.off("answer_result").on("answer_result", (data) => {
     setDuelScores(data.scores)
+    setAnswerResult(data.correctAnswerId)
     // Sonido según respuesta
     if (data.correctPlayerId === socket.id) {
       playSound("correct")
@@ -108,7 +144,9 @@ const Duels = () => {
     }
     setTimeout(() => {
       setSelectedOption(null)
+      setAnswerResult(null)
       setCurrentQuestion((prev) => prev + 1)
+      setTimer(10)
     }, 1200)
   })
 
@@ -164,37 +202,50 @@ const Duels = () => {
         </div>
       )
     }
-    if (!duelModalOpen || duelQuestions.length === 0) return null
-    const q = duelQuestions[currentQuestion]
+    // Validación para evitar error al finalizar duelo
+    if (!duelModalOpen || duelQuestions.length === 0 || !duelQuestions[currentQuestion]) return null;
+    const q = duelQuestions[currentQuestion];
+
     return (
       <div className="duel-modal">
         <div className="modal-content">
-          <h2 style={{marginBottom: '1.2rem', color: '#3b82f6'}}>Pregunta {currentQuestion + 1} de {duelQuestions.length}</h2>
+          <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'1rem'}}>
+            <h2 style={{color:'#3b82f6'}}>Pregunta {currentQuestion + 1} de {duelQuestions.length}</h2>
+            <div style={{fontWeight:'bold', fontSize:'1.2rem', color:'#10b981'}}>Puntos: {duelScores && duelScores[socket?.id] ? duelScores[socket.id] : 0}</div>
+            <div style={{fontWeight:'bold', fontSize:'1.2rem', color:'#ef4444'}}>⏰ {timer}s</div>
+          </div>
           <h3 style={{marginBottom: '1rem', color: '#10b981'}}>VS {duelOpponent}</h3>
           <p className="question-text">{q.text}</p>
           <div className="options-list">
-            {q.options.map((opt) => (
-              <button
-                key={opt.id}
-                className={selectedOption === opt.id ? "selected" : ""}
-                style={{
-                  background: selectedOption === opt.id ? '#3b82f6' : '#f3f4f6',
-                  color: selectedOption === opt.id ? '#fff' : '#222',
-                  border: 'none',
-                  cursor: selectedOption ? 'not-allowed' : 'pointer',
-                  fontWeight: '500',
-                }}
-                onClick={() => handleAnswer(opt.id)}
-                disabled={!!selectedOption}
-              >
-                {opt.text}
-              </button>
-            ))}
+            {q.options.map((opt) => {
+              let btnColor = '#f3f4f6';
+              if (selectedOption) {
+                if (answerResult && opt.id === answerResult) btnColor = '#22c55e'; // verde correcta
+                else if (selectedOption === opt.id && opt.id !== answerResult) btnColor = '#ef4444'; // rojo incorrecta
+                else if (selectedOption === "timeout") btnColor = '#ef4444'; // tiempo agotado
+              }
+              return (
+                <button
+                  key={opt.id}
+                  style={{
+                    background: btnColor,
+                    color: btnColor === '#f3f4f6' ? '#222' : '#fff',
+                    border: 'none',
+                    cursor: selectedOption ? 'not-allowed' : 'pointer',
+                    fontWeight: '500',
+                    marginBottom: '0.5rem',
+                    transition: 'background 0.3s',
+                  }}
+                  onClick={() => handleAnswer(opt.id)}
+                  disabled={!!selectedOption}
+                >
+                  {opt.text}
+                </button>
+              );
+            })}
           </div>
-          {selectedOption && <p className="answer-info">Esperando al oponente...</p>}
-          <div style={{marginTop: '1rem', fontWeight: 'bold', color: '#10b981'}}>
-            Puntaje actual: {duelScores && duelScores[socket?.id] ? duelScores[socket.id] : 0}
-          </div>
+          {selectedOption && selectedOption !== "timeout" && <p className="answer-info">Esperando al oponente...</p>}
+          {selectedOption === "timeout" && <p className="answer-info" style={{color:'#ef4444'}}>¡Tiempo agotado!</p>}
         </div>
       </div>
     )
