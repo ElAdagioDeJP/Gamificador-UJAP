@@ -8,6 +8,7 @@ import "../styles/Auth.css"
 
 const Register = () => {
   const { user, register } = useAuth()
+  const [redirectToLogin, setRedirectToLogin] = useState(false)
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -22,6 +23,9 @@ const Register = () => {
 
   if (user) {
     return <Navigate to="/" replace />
+  }
+  if (redirectToLogin) {
+    return <Navigate to="/login" replace />
   }
 
   const handleChange = (e) => {
@@ -44,12 +48,13 @@ const Register = () => {
 
   const { confirmPassword, ...registerData } = formData
     const result = await register(registerData)
-
     if (!result.success) {
       setError(result.error)
+      setLoading(false)
+      return
     }
-
     setLoading(false)
+    setRedirectToLogin(true)
   }
 
   return (

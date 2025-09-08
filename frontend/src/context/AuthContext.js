@@ -51,10 +51,8 @@ export const AuthProvider = ({ children }) => {
 
   const register = useCallback(async (userData) => {
     try {
-  const response = await authService.register(userData)
-  setUser(response.user)
-  localStorage.setItem("token", response.token)
-  localStorage.setItem("user", JSON.stringify(response.user))
+      const response = await authService.register(userData)
+      // No guardar usuario ni token, solo retornar éxito
       return { success: true }
     } catch (error) {
       return { success: false, error: error.message }
