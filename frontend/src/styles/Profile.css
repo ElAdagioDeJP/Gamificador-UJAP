@@ -63,7 +63,7 @@
 
 .profile-header h1 {
   font-family: "Press Start 2P", monospace;
-  font-size: 16px;
+  font-size: 24px;
   font-weight: normal;
   color: var(--pixel-text-primary);
   margin-bottom: 8px;
@@ -75,7 +75,7 @@
 .profile-header p {
   color: var(--pixel-text-secondary);
   font-family: "Press Start 2P", monospace;
-  font-size: 10px;
+  font-size: 12px;
   font-weight: normal;
   position: relative;
   z-index: 2;
@@ -152,7 +152,7 @@
 
 .profile-field label {
   font-family: "Press Start 2P", monospace;
-  font-size: 8px;
+  font-size: 10px;
   font-weight: normal;
   color: var(--pixel-text-primary);
   text-transform: uppercase;
@@ -292,7 +292,7 @@
 
 .achievement-info h4 {
   font-family: "Press Start 2P", monospace;
-  font-size: 8px;
+  font-size: 12px;
   font-weight: normal;
   color: var(--pixel-text-primary);
   margin: 0 0 2px 0;
@@ -300,7 +300,7 @@
 
 .achievement-info p {
   font-family: "Press Start 2P", monospace;
-  font-size: 7px;
+  font-size: 10px;
   color: var(--pixel-text-secondary);
   margin: 0;
   line-height: 1.4;
@@ -338,14 +338,14 @@
 
 .skill-name {
   font-family: "Press Start 2P", monospace;
-  font-size: 8px;
+  font-size: 10px;
   font-weight: normal;
   color: var(--pixel-text-primary);
 }
 
 .skill-level {
   font-family: "Press Start 2P", monospace;
-  font-size: 7px;
+  font-size: 9px;
   color: var(--pixel-text-secondary);
   font-weight: normal;
 }

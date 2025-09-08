@@ -342,7 +342,7 @@ const Duels = () => {
                     {duel.result === "won" ? (
                       <span className="result-text won">🎉 ¡Victoria! +150 puntos</span>
                     ) : (
-                      <span className="result-text lost">😔 Derrota. +25 puntos de participación</span>
+                      <span className="result-text lost">😔 Derrota. </span>
                     )}
                   </div>
                 </Card>

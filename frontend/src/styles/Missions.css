@@ -193,7 +193,14 @@
 
 .mission-difficulty {
   font-family: "Press Start 2P", monospace;
-  font-size: 7px;
+    font-size: 10px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    max-width: 140px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   padding: 4px 8px;
   border: 2px solid;
   font-weight: normal;
@@ -205,7 +212,14 @@
 
 .mission-completed-badge {
   font-family: "Press Start 2P", monospace;
-  font-size: 7px;
+    font-size: 9px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    max-width: 140px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   padding: 4px 8px;
   background: linear-gradient(135deg, var(--pixel-green-light) 0%, var(--pixel-green) 100%);
   color: var(--pixel-green-dark);
@@ -325,6 +339,10 @@
   .mission-completed-badge {
     margin-left: 0;
     align-self: flex-start;
+    max-width: 120px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   .mission-meta {
@@ -333,3 +351,23 @@
     align-items: flex-start;
   }
 }
+
+
+
+
+
+
+.missions-header h1 { font-size: 24px; }
+.missions-header p { font-size: 12px; }
+.missions-stat-card .stat-content h3 { font-size: 15px; }
+.missions-stat-card .stat-content p { font-size: 10px; }
+.missions-section h2 { font-size: 15px; }
+.mission-header h3 { font-size: 13px; }
+.mission-difficulty { font-size: 10px; }
+.mission-completed-badge { font-size: 9px; }
+.mission-description { font-size: 10px; }
+.mission-points { font-size: 12px; }
+.mission-deadline { font-size: 12px; }
+.points-icon, .deadline-icon { font-size: 12px; }
+.no-missions-content h3 { font-size: 12px; }
+.no-missions-content p { font-size: 10px; }

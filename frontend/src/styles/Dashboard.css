@@ -84,7 +84,7 @@
 
 .dashboard-header h1 {
   font-family: "Press Start 2P", monospace;
-  font-size: 16px;
+  font-size: 24px;
   font-weight: normal;
   color: var(--pixel-text-primary);
   margin-bottom: 8px;
@@ -96,7 +96,7 @@
 .dashboard-header p {
   color: var(--pixel-text-secondary);
   font-family: "Press Start 2P", monospace;
-  font-size: 10px;
+  font-size: 12px;
   font-weight: normal;
   position: relative;
   z-index: 2;
@@ -142,7 +142,7 @@
 
 .stat-content h3 {
   font-family: "Press Start 2P", monospace;
-  font-size: 18px;
+  font-size: 20px;
   font-weight: normal;
   margin-bottom: 4px;
   line-height: 1.2;
@@ -151,7 +151,7 @@
 
 .stat-content p {
   font-family: "Press Start 2P", monospace;
-  font-size: 8px;
+  font-size: 12px;
   margin: 0;
   font-weight: normal;
   text-transform: uppercase;
@@ -317,13 +317,13 @@
   font-weight: normal;
   color: var(--pixel-text-primary);
   margin-bottom: 6px;
-  font-size: 10px;
+  font-size: 14px;
 }
 
 .mission-info p {
   color: var(--pixel-text-secondary);
   font-family: "Press Start 2P", monospace;
-  font-size: 8px;
+  font-size: 11px;
   margin-bottom: 8px;
   line-height: 1.5;
 }
@@ -336,7 +336,7 @@
 
 .difficulty {
   font-family: "Press Start 2P", monospace;
-  font-size: 7px;
+  font-size: 11px;
   padding: 4px 8px;
   border: 2px solid;
   font-weight: normal;
@@ -365,7 +365,7 @@
 
 .points {
   font-family: "Press Start 2P", monospace;
-  font-size: 7px;
+  font-size: 11px;
   font-weight: normal;
   color: var(--pixel-blue-dark);
   background: var(--pixel-blue-light);
@@ -377,7 +377,7 @@
 
 .mission-deadline {
   font-family: "Press Start 2P", monospace;
-  font-size: 8px;
+  font-size: 14px;
   color: var(--pixel-text-secondary);
   font-weight: normal;
 }

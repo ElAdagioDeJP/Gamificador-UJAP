@@ -75,7 +75,7 @@
 
 .duels-header h1 {
   font-family: "Press Start 2P", monospace;
-  font-size: 16px;
+  font-size: 24px;
   font-weight: normal;
   color: var(--pixel-text-primary);
   margin-bottom: 8px;
@@ -118,7 +118,7 @@
 
 .duels-stat-card .stat-content h3 {
   font-family: "Press Start 2P", monospace;
-  font-size: 18px;
+  font-size: 20px;
   font-weight: normal;
   color: var(--pixel-text-primary);
   margin-bottom: 4px;
@@ -127,7 +127,7 @@
 .duels-stat-card .stat-content p {
   color: var(--pixel-text-secondary);
   font-family: "Press Start 2P", monospace;
-  font-size: 8px;
+  font-size: 10px;
   margin: 0;
   font-weight: normal;
   text-transform: uppercase;
@@ -154,7 +154,7 @@
 
 .section-header h2 {
   font-family: "Press Start 2P", monospace;
-  font-size: 14px;
+  font-size: 20px;
   font-weight: normal;
   color: var(--pixel-text-primary);
   margin: 0;
@@ -225,7 +225,7 @@
 
 .opponent-info h3 {
   font-family: "Press Start 2P", monospace;
-  font-size: 10px;
+  font-size: 14px;
   font-weight: normal;
   color: var(--pixel-text-primary);
   margin: 0 0 4px 0;
@@ -234,13 +234,13 @@
 .opponent-info p {
   color: var(--pixel-text-secondary);
   font-family: "Press Start 2P", monospace;
-  font-size: 8px;
+  font-size: 10px;
   margin: 0;
 }
 
 .duel-status {
   font-family: "Press Start 2P", monospace;
-  font-size: 7px;
+  font-size: 11px;
   padding: 4px 8px;
   border: 2px solid;
   font-weight: normal;
@@ -269,7 +269,7 @@
 
 .score-label {
   font-family: "Press Start 2P", monospace;
-  font-size: 7px;
+  font-size: 10px;
   color: var(--pixel-text-secondary);
   font-weight: normal;
   text-transform: uppercase;
@@ -278,14 +278,14 @@
 
 .score-value {
   font-family: "Press Start 2P", monospace;
-  font-size: 16px;
+  font-size: 22px;
   font-weight: normal;
   color: var(--pixel-text-primary);
 }
 
 .score-vs {
   font-family: "Press Start 2P", monospace;
-  font-size: 10px;
+  font-size: 16px;
   font-weight: normal;
   color: var(--pixel-text-secondary);
   padding: 0 8px;
@@ -296,7 +296,7 @@
   align-items: center;
   gap: 6px;
   font-family: "Press Start 2P", monospace;
-  font-size: 8px;
+  font-size: 12px;
   color: var(--pixel-text-secondary);
   margin-bottom: 12px;
   font-weight: normal;
@@ -322,7 +322,7 @@
 
 .result-text {
   font-family: "Press Start 2P", monospace;
-  font-size: 8px;
+  font-size: 12px;
   font-weight: normal;
   padding: 8px 12px;
   border: 2px solid;
@@ -371,7 +371,7 @@
 .no-duels-content p {
   color: var(--pixel-blue-dark);
   font-family: "Press Start 2P", monospace;
-  font-size: 8px;
+  font-size: 12px;
   margin: 0 0 12px 0;
 }
 
