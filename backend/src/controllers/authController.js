@@ -19,7 +19,7 @@ exports.register = async (req, res, next) => {
       throw err;
     }
 
-  const { username, email, password, name, rol, sexo } = req.body;
+  const { username, email, password, name, rol, sexo, university, career } = req.body;
 
     // Map frontend fields to DB columns
     const nombre_usuario = username || email.split('@')[0];
@@ -48,6 +48,8 @@ exports.register = async (req, res, next) => {
       contrasena_hash: password,
       rol: rol || 'estudiante',
       sexo: (sexo === 'M' || sexo === 'F') ? sexo : null,
+      universidad: university || null,
+      carrera: career || null,
     });
     const token = signToken(user);
 
