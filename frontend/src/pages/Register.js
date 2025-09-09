@@ -7,6 +7,77 @@ import Card from "../components/common/Card"
 import "../styles/Auth.css"
 
 const Register = () => {
+  // Carreras por universidad
+  const careersByUniversity = {
+    UJAP: [
+      "Ingeniería Civil",
+      "Ingeniería de Computación",
+      "Ingeniería Electrónica",
+      "Ingeniería Industrial",
+      "Ingeniería Mecánica",
+      "Ingeniería en Telecomunicaciones",
+      "Arquitectura",
+      "Administración de Empresas",
+      "Contaduría Pública",
+      "Mercadeo",
+      "Relaciones Industriales",
+      "Administración Pública",
+      "Odontología",
+      "Derecho",
+      "Educación Inicial",
+      "Educación Integral",
+      "Educación Informática"
+    ],
+    UAM: [
+      "Fisioterapia",
+      "Histotecnología",
+      "Citotecnología",
+      "TSU Fisioterapia",
+      "TSU Imagenología",
+      "Psicología",
+      "Comunicación Social",
+      "Contaduría",
+      "Administración Comercial",
+      "Diseño Gráfico",
+      "Idiomas Modernos",
+      "Derecho",
+      "Ingeniería Electrónica",
+      "TSU Comunicaciones y Electrónica",
+      "TSU Computación"
+    ],
+    UCAB: [
+      "Ingeniería Industrial",
+      "Ingeniería Informática",
+      "Arquitectura",
+      "Ingeniería Civil",
+      "Ingeniería en Telecomunicaciones",
+      "Ingeniería Mecatrónica",
+      "TSU Diseño y Producción de Software",
+      "Filosofía",
+      "Psicología",
+      "Letras",
+      "Comunicación Social",
+      "Educación",
+      "Administración",
+      "Contaduría",
+      "Relaciones Industriales",
+      "Sociología",
+      "Economía",
+      "TSU en Seguridad y Salud Laboral",
+      "TSU en Seguros",
+      "Derecho",
+      "Teología"
+    ],
+    UBA: [
+      "Administración de Empresas",
+      "Contaduría Pública",
+      "Comunicación Social",
+      "Derecho",
+      "Psicología",
+      "Ingeniería en Sistemas",
+      "Ingeniería Electrónica"
+    ]
+  };
   const { user, register } = useAuth()
   const [redirectToLogin, setRedirectToLogin] = useState(false)
   const [formData, setFormData] = useState({
@@ -107,32 +178,43 @@ const Register = () => {
               <label htmlFor="university" className="form-label">
                 Universidad
               </label>
-              <input
-                type="text"
+              <select
                 id="university"
                 name="university"
                 value={formData.university}
                 onChange={handleChange}
                 className="form-input"
-                placeholder="Universidad Nacional"
                 required
-              />
+              >
+                <option value="">Selecciona una universidad</option>
+                <option value="UJAP">UJAP</option>
+                <option value="UAM">UAM</option>
+                <option value="UCAB">UCAB</option>
+                <option value="UBA">UBA</option>
+              </select>
             </div>
 
             <div className="form-group">
-              <label htmlFor="career" className="form-label">
-                Carrera
-              </label>
-              <input
-                type="text"
-                id="career"
-                name="career"
-                value={formData.career}
-                onChange={handleChange}
-                className="form-input"
-                placeholder="Ingeniería de Sistemas"
-                required
-              />
+              {formData.university && (
+                <>
+                  <label htmlFor="career" className="form-label">
+                    Carrera
+                  </label>
+                  <select
+                    id="career"
+                    name="career"
+                    value={formData.career}
+                    onChange={handleChange}
+                    className="form-input"
+                    required
+                  >
+                    <option value="">Selecciona una carrera</option>
+                    {careersByUniversity[formData.university]?.map((career) => (
+                      <option key={career} value={career}>{career}</option>
+                    ))}
+                  </select>
+                </>
+              )}
             </div>
 
             <fieldset className="form-group">
