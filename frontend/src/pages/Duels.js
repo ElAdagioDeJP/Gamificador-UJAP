@@ -32,9 +32,11 @@ const Duels = () => {
   useEffect(() => {
     if (!duelModalOpen || !duelQuestions[currentQuestion]) return;
     setTimer(10);
+    let questionAdvanced = false;
     timerRef.current = setInterval(() => {
       setTimer((prev) => {
-        if (prev <= 1) {
+        if (prev <= 1 && !questionAdvanced) {
+          questionAdvanced = true;
           clearInterval(timerRef.current);
           if (!selectedOption) {
             setSelectedOption("timeout");
@@ -57,7 +59,7 @@ const Duels = () => {
       });
     }, 1000);
     return () => clearInterval(timerRef.current);
-  }, [duelModalOpen, currentQuestion, selectedOption, duelQuestions]);
+  }, [duelModalOpen, currentQuestion, duelQuestions]);
 
   if (loading) {
     return <LoadingSpinner />
@@ -134,20 +136,21 @@ const Duels = () => {
 
   // Recibir resultado de respuesta y avanzar pregunta
   socket.off("answer_result").on("answer_result", (data) => {
-    setDuelScores(data.scores)
-    setAnswerResult(data.correctAnswerId)
+    setDuelScores(data.scores);
+    setAnswerResult(data.correctAnswerId);
+    clearInterval(timerRef.current); // Detener temporizador al recibir respuesta
     // Sonido según respuesta
     if (data.correctPlayerId === socket.id) {
-      playSound("correct")
+      playSound("correct");
     } else if (data.correctPlayerId) {
-      playSound("wrong")
+      playSound("wrong");
     }
     setTimeout(() => {
-      setSelectedOption(null)
-      setAnswerResult(null)
-      setCurrentQuestion((prev) => prev + 1)
-      setTimer(10)
-    }, 1200)
+      setSelectedOption(null);
+      setAnswerResult(null);
+      setCurrentQuestion((prev) => prev + 1);
+      setTimer(10);
+    }, 1200);
   })
 
   // Recibir fin de duelo
@@ -190,6 +193,10 @@ const Duels = () => {
   // Modal de preguntas
   const renderDuelModal = () => {
     if (waitingForOpponent) {
+      const handleCancelQueue = () => {
+        socket.emit("leave_queue");
+        setWaitingForOpponent(false);
+      };
       return (
         <div className="duel-modal">
           <div className="modal-content">
@@ -198,9 +205,15 @@ const Duels = () => {
             <div style={{ marginTop: '2rem' }}>
               <span className="answer-info">⏳</span>
             </div>
+            <button
+              style={{marginTop:'2rem', padding:'0.7rem 1.5rem', background:'#ef4444', color:'#fff', border:'none', borderRadius:'8px', fontWeight:'bold', cursor:'pointer'}}
+              onClick={handleCancelQueue}
+            >
+              Cancelar búsqueda
+            </button>
           </div>
         </div>
-      )
+      );
     }
     // Validación para evitar error al finalizar duelo
     if (!duelModalOpen || duelQuestions.length === 0 || !duelQuestions[currentQuestion]) return null;

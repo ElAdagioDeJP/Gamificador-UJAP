@@ -15,13 +15,21 @@ app.use(express.json({ limit: '1mb' }));
 app.use(express.urlencoded({ extended: true }));
 
 // CORS
-const allowedOrigins = (process.env.CORS_ORIGINS || '').split(',').filter(Boolean);
+// const allowedOrigins = (process.env.CORS_ORIGINS || '').split(',').filter(Boolean);
+// app.use(cors({
+//   origin: (origin, cb) => {
+//     if (!origin || allowedOrigins.length === 0 || allowedOrigins.includes(origin)) {
+//       return cb(null, true);
+//     }
+//     cb(new Error('Not allowed by CORS'));
+//   },
+//   credentials: true
+// }));
+
+// CORS: Permitir cualquier origen para desarrollo
 app.use(cors({
-  origin: (origin, cb) => {
-    if (!origin || allowedOrigins.length === 0 || allowedOrigins.includes(origin)) {
-      return cb(null, true);
-    }
-    cb(new Error('Not allowed by CORS'));
+  origin: (origin, callback) => {
+    callback(null, true); // Permitir cualquier origen
   },
   credentials: true
 }));
