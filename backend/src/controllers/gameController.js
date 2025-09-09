@@ -124,7 +124,7 @@ exports.completeMission = async (req, res, next) => {
     const missionId = Number(req.params.id);
 
     // Obtener recompensa
-    const [[mission]] = await sequelize.query(`SELECT puntos_recompensa, experiencia_recompensa FROM Misiones WHERE id_mision = :missionId`, { replacements: { missionId } });
+  const [[mission]] = await sequelize.query(`SELECT puntos_recompensa, experiencia_recompensa, tipo_mision FROM Misiones WHERE id_mision = :missionId`, { replacements: { missionId } });
     if (!mission) return res.status(404).json({ success: false, message: 'Misión no encontrada' });
 
     await sequelize.transaction(async (t) => {
@@ -137,19 +137,31 @@ exports.completeMission = async (req, res, next) => {
       );
 
       // Actualizar usuario: puntos, exp, racha
-      await sequelize.query(
-        `UPDATE Usuarios
-            SET puntos_actuales = puntos_actuales + :puntos,
-                experiencia_total = experiencia_total + :exp,
-                racha_dias_consecutivos = racha_dias_consecutivos + 1,
-                fecha_ultima_actividad = CURDATE()
-          WHERE id_usuario = :userId`,
-        { replacements: { userId, puntos: mission.puntos_recompensa || 0, exp: mission.experiencia_recompensa || 0 }, transaction: t }
-      );
+      // Only increment streak for daily missions now
+      if (mission.tipo_mision === 'DIARIA') {
+        await sequelize.query(
+          `UPDATE Usuarios
+              SET puntos_actuales = puntos_actuales + :puntos,
+                  experiencia_total = experiencia_total + :exp,
+                  racha_dias_consecutivos = racha_dias_consecutivos + 1,
+                  fecha_ultima_actividad = CURDATE()
+            WHERE id_usuario = :userId`,
+          { replacements: { userId, puntos: mission.puntos_recompensa || 0, exp: mission.experiencia_recompensa || 0 }, transaction: t }
+        );
+      } else {
+        await sequelize.query(
+          `UPDATE Usuarios
+              SET puntos_actuales = puntos_actuales + :puntos,
+                  experiencia_total = experiencia_total + :exp,
+                  fecha_ultima_actividad = CURDATE()
+            WHERE id_usuario = :userId`,
+          { replacements: { userId, puntos: mission.puntos_recompensa || 0, exp: mission.experiencia_recompensa || 0 }, transaction: t }
+        );
+      }
     });
 
     const [[u]] = await sequelize.query(`SELECT puntos_actuales FROM Usuarios WHERE id_usuario = :userId`, { replacements: { userId } });
-    res.json({ success: true, data: { pointsEarned: mission.puntos_recompensa || 0, newTotal: u.puntos_actuales, streakBonus: 0 } });
+  res.json({ success: true, data: { pointsEarned: mission.puntos_recompensa || 0, newTotal: u.puntos_actuales, streakIncremented: mission.tipo_mision === 'DIARIA' } });
   } catch (e) {
     next(e);
   }

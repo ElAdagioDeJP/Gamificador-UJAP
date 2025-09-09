@@ -44,4 +44,30 @@ export const teacherService = {
     const { data } = await request('/teacher/stats');
     return data;
   },
+
+  async createMission(mission) {
+    const { data } = await request('/teacher/missions', { method: 'POST', body: mission });
+    return data;
+  },
+
+  async listMissions(type = 'NORMAL') {
+    const { data } = await request(`/teacher/missions?type=${type === 'DIARIA' ? 'DIARIA' : 'NORMAL'}`);
+    return data;
+  },
+
+  async listPendingSubmissions(missionId = null) {
+    const qs = missionId ? `?missionId=${missionId}` : '';
+    const { data } = await request(`/teacher/missions/pending${qs}`);
+    return data;
+  },
+
+  async approveMissionSubmission(missionId, studentId) {
+    const { data } = await request(`/teacher/missions/${missionId}/students/${studentId}/approve`, { method: 'POST' });
+    return data;
+  },
+
+  async rejectMissionSubmission(missionId, studentId) {
+    const { data } = await request(`/teacher/missions/${missionId}/students/${studentId}/reject`, { method: 'POST' });
+    return data;
+  },
 };
