@@ -58,7 +58,7 @@ const Skills = () => {
             <div className="summary-stat">
               <span className="stat-icon">⭐</span>
               <div className="stat-info">
-                <h4>{Math.round(skills.reduce((acc, skill) => acc + skill.level, 0) / skills.length)}</h4>
+                <h4>{skills.length > 0 ? Math.round(skills.reduce((acc, skill) => acc + skill.level, 0) / skills.length) : 0}</h4>
                 <p>Nivel Promedio</p>
               </div>
             </div>

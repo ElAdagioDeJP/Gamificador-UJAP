@@ -4,7 +4,7 @@ let API_BASE_URL = process.env.REACT_APP_API_URL;
 if (!API_BASE_URL) {
   const { protocol, hostname } = window.location;
   // Si el frontend corre en localhost:3000 usamos mismo host con puerto 5000
-  if (hostname === 'localhost' || hostname === '192.168.31.61') {
+  if (hostname === 'localhost' || hostname === '172.16.0.32') {
     API_BASE_URL = `${protocol}//${hostname}:5000/api`;
   } else {
     // fallback razonable (puede ajustarse vía REACT_APP_API_URL)
@@ -42,8 +42,8 @@ export const authService = {
         email: data.user.email_institucional,
         name: data.user.nombre_completo,
         avatar: data.user.avatar_url || "/placeholder.svg?height=100&width=100",
-        university: data.user.university || "",
-        career: data.user.career || "",
+        university: data.user.universidad || "",
+        career: data.user.carrera || "",
         rol: (data.user.rol === 'user' ? 'estudiante' : data.user.rol) || 'estudiante',
       }
     return { user, token: data.token }
@@ -69,9 +69,9 @@ export const authService = {
       email: data.user.email_institucional,
       name: data.user.nombre_completo,
       avatar: data.user.avatar_url || "/placeholder.svg?height=100&width=100",
-      university: payload.university,
-      career: payload.career,
-  rol: (data.user.rol === 'user' ? 'estudiante' : data.user.rol) || userData.rol || 'estudiante',
+      university: data.user.universidad || payload.university,
+      career: data.user.carrera || payload.carrera,
+      rol: (data.user.rol === 'user' ? 'estudiante' : data.user.rol) || userData.rol || 'estudiante',
     }
     return { user, token: data.token }
   },
@@ -85,9 +85,9 @@ export const authService = {
       email: data.user.email_institucional,
       name: data.user.nombre_completo,
       avatar: data.user.avatar_url || "/placeholder.svg?height=100&width=100",
-      university: data.user.university || "",
-      career: data.user.career || "",
-  rol: (data.user.rol === 'user' ? 'estudiante' : data.user.rol) || 'estudiante',
+      university: data.user.universidad || "",
+      career: data.user.carrera || "",
+      rol: (data.user.rol === 'user' ? 'estudiante' : data.user.rol) || 'estudiante',
     }
   },
 }
