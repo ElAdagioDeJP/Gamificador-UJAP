@@ -105,7 +105,9 @@ const Leaderboard = () => {
                   </div>
 
                   <div className="player-info">
-                    <img src={player.avatar || "/placeholder.svg"} alt={player.name} className="player-avatar" />
+                    <div className="player-avatar avatar-initials" title={player.name}>
+                      {player.name.split(/\s+/).slice(0,2).map(w=>w[0]).join('').toUpperCase()}
+                    </div>
                     <div className="player-details">
                       <h3 className="player-name">
                         {player.name}
@@ -144,11 +146,9 @@ const Leaderboard = () => {
               </div>
 
               <div className="player-info">
-                <img
-                  src={user?.avatar || "/placeholder.svg?height=50&width=50&query=user+avatar"}
-                  alt={user?.name}
-                  className="player-avatar"
-                />
+                <div className="player-avatar avatar-initials" title={user?.name}>
+                  {user?.name?.split(/\s+/).slice(0,2).map(w=>w[0]).join('').toUpperCase()}
+                </div>
                 <div className="player-details">
                   <h3 className="player-name">
                     {user?.name}

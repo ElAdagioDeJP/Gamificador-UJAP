@@ -127,7 +127,9 @@ const Students = () => {
               {students.map((student) => (
                 <tr key={student.id} className={`student-row ${student.status}`}>
                   <td className="student-info">
-                    <img src={student.avatar || "/placeholder.svg"} alt={student.name} className="student-avatar" />
+                    <div className="student-avatar avatar-initials" title={student.name}>
+                      {student.name.split(/\s+/).slice(0,2).map(w=>w[0]).join('').toUpperCase()}
+                    </div>
                     <span className="student-name">{student.name}</span>
                   </td>
                   <td className="student-email">{student.email}</td>
@@ -180,8 +182,9 @@ const Students = () => {
             </div>
             <form onSubmit={handleCreateStudent} className="modal-form">
               <div className="form-group">
-                <label>Nombre Completo</label>
+                <label htmlFor="student-name">Nombre Completo</label>
                 <input
+                  id="student-name"
                   type="text"
                   value={newStudent.name}
                   onChange={(e) => setNewStudent({ ...newStudent, name: e.target.value })}
@@ -190,8 +193,9 @@ const Students = () => {
                 />
               </div>
               <div className="form-group">
-                <label>Email</label>
+                <label htmlFor="student-email">Email</label>
                 <input
+                  id="student-email"
                   type="email"
                   value={newStudent.email}
                   onChange={(e) => setNewStudent({ ...newStudent, email: e.target.value })}
@@ -200,8 +204,9 @@ const Students = () => {
                 />
               </div>
               <div className="form-group">
-                <label>Universidad</label>
+                <label htmlFor="student-university">Universidad</label>
                 <input
+                  id="student-university"
                   type="text"
                   value={newStudent.university}
                   onChange={(e) => setNewStudent({ ...newStudent, university: e.target.value })}
@@ -210,8 +215,9 @@ const Students = () => {
                 />
               </div>
               <div className="form-group">
-                <label>Carrera</label>
+                <label htmlFor="student-career">Carrera</label>
                 <input
+                  id="student-career"
                   type="text"
                   value={newStudent.career}
                   onChange={(e) => setNewStudent({ ...newStudent, career: e.target.value })}
@@ -244,11 +250,9 @@ const Students = () => {
             </div>
             <div className="student-details">
               <div className="student-detail-header">
-                <img
-                  src={selectedStudent.avatar || "/placeholder.svg"}
-                  alt={selectedStudent.name}
-                  className="student-detail-avatar"
-                />
+                <div className="student-detail-avatar avatar-initials-lg" title={selectedStudent.name}>
+                  {selectedStudent.name.split(/\s+/).slice(0,2).map(w=>w[0]).join('').toUpperCase()}
+                </div>
                 <div className="student-detail-info">
                   <h4>{selectedStudent.name}</h4>
                   <p>{selectedStudent.email}</p>

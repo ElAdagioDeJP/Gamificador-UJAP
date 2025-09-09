@@ -1,5 +1,16 @@
 // Servicio real de autenticación contra el backend
-const API_BASE_URL = process.env.REACT_APP_API_URL || "http://172.16.0.32:5000/api";
+// Determina dinámicamente la URL de la API para evitar hardcodear IPs internas que causan timeouts en otras redes.
+let API_BASE_URL = process.env.REACT_APP_API_URL;
+if (!API_BASE_URL) {
+  const { protocol, hostname } = window.location;
+  // Si el frontend corre en localhost:3000 usamos mismo host con puerto 5000
+  if (hostname === 'localhost' || hostname === '192.168.31.61') {
+    API_BASE_URL = `${protocol}//${hostname}:5000/api`;
+  } else {
+    // fallback razonable (puede ajustarse vía REACT_APP_API_URL)
+    API_BASE_URL = `${protocol}//${hostname}/api`;
+  }
+}
 
 async function request(path, options = {}) {
   const res = await fetch(`${API_BASE_URL}${path}`, {
@@ -17,31 +28,7 @@ async function request(path, options = {}) {
   }
   return data
 }
-const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
-
-const mockUsers = [
-  {
-    id: 1,
-    email: "student@university.edu",
-    password: "password123",
-    name: "Juan Pérez",
-    avatar: "/placeholder.svg?height=100&width=100",
-    university: "Universidad Nacional",
-    career: "Ingeniería de Sistemas",
-    role: "student",
-  },
-  {
-    id: 2,
-    email: "profesor@university.edu",
-    password: "profesor123",
-    name: "Venecia Miranda",
-    avatar: "/placeholder.svg?height=100&width=100",
-    university: "Universidad Nacional",
-    department: "Facultad de Ingeniería",
-    subject: "Programación Avanzada",
-    role: "teacher",
-  },
-]
+// (mockUsers y delay removidos - ya no se usan)
 
 export const authService = {
   async login(email, password) {

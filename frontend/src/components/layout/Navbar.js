@@ -14,11 +14,9 @@ const Navbar = () => {
     <header className="navbar">
       <div className="navbar-content">
         <div className="navbar-user">
-          <img
-            src={user?.avatar || "/placeholder.svg?height=40&width=40&query=user+avatar"}
-            alt="Avatar"
-            className="navbar-avatar"
-          />
+          <div className="navbar-avatar avatar-initials" title={user?.name}>
+            {user?.name?.split(/\s+/).slice(0,2).map(w=>w[0]).join('').toUpperCase() || '?'}
+          </div>
           <div className="navbar-user-info">
             <span className="navbar-username">{user?.name}</span>
             <span className="navbar-separator">•</span>

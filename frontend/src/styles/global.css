@@ -118,7 +118,6 @@ h4,
 h5,
 h6 {
   font-family: "Press Start 2P", monospace;
-  /* text-shadow: var(--pixel-shadow-sm); */
   line-height: 1.4;
 }
 
@@ -286,20 +285,13 @@ body::-webkit-scrollbar-thumb:hover {
   background: var(--pixel-orange-dark);
 }
 
-/* Ocultar todos los scrollbars excepto el del body */
-/* *:not(body)::-webkit-scrollbar {
-  display: none;
-}
+/* duplicate body selector removed */
 
-* {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-} */
-
-body {
-  -ms-overflow-style: auto;
-  scrollbar-width: auto;
-}
+/* Avatar por iniciales (reemplaza imágenes) */
+.avatar-initials { display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:bold; color:#111; background:linear-gradient(135deg,var(--pixel-yellow-light),var(--pixel-orange-light)); border:2px solid #1c1917; border-radius:8px; width:40px; height:40px; box-shadow: var(--pixel-shadow-sm); text-transform:uppercase; }
+.avatar-initials-lg { width:120px; height:120px; font-size:28px; border-radius:16px; display:flex; align-items:center; justify-content:center; background:linear-gradient(135deg,var(--pixel-purple-light),var(--pixel-blue-light)); border:4px solid #1c1917; box-shadow: var(--pixel-shadow); }
+.avatar-initials-sm { width:28px; height:28px; font-size:9px; }
+.avatar-initials:hover { transform: translate(-2px,-2px); box-shadow: var(--pixel-shadow); }
 
 /* Responsive pixel */
 @media (max-width: 768px) {

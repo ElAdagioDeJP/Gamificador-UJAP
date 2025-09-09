@@ -58,14 +58,9 @@ const Profile = () => {
         <div className="profile-main">
           <Card className="profile-info-card">
             <div className="profile-avatar-section">
-              <img
-                src={user?.avatar || "/placeholder.svg?height=120&width=120&query=user+avatar"}
-                alt="Avatar"
-                className="profile-avatar"
-              />
-              <Button variant="secondary" size="small">
-                Cambiar Foto
-              </Button>
+              <div className="profile-avatar avatar-initials-lg" title={user?.name}>
+                {user?.name?.split(/\s+/).slice(0,2).map(w=>w[0]).join('').toUpperCase() || '?'}
+              </div>
             </div>
 
             <div className="profile-details">

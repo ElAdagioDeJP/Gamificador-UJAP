@@ -4,8 +4,10 @@ const app = require('./app');
 const connectDB = require('./config/db');
 const http = require('http');
 const { Server } = require('socket.io');
+const os = require('os');
 
 const PORT = process.env.PORT || 5000;
+const HOST = process.env.HOST || '0.0.0.0';
 
 // Importa y conecta la lógica de duelos
 const setupDuelSocket = require('./duelManager');
@@ -30,8 +32,16 @@ const setupDuelSocket = require('./duelManager');
     //   console.log('Usuario conectado:', socket.id);
     // });
 
-    httpServer.listen(PORT, () => {
-      console.log(`API y Socket.IO corriendo en puerto ${PORT} (env: ${process.env.NODE_ENV || 'development'})`);
+    httpServer.listen(PORT, HOST, () => {
+      const nets = os.networkInterfaces();
+      const addrs = [];
+      Object.values(nets).forEach(list => list && list.forEach(i => {
+        if (i.family === 'IPv4' && !i.internal) addrs.push(i.address);
+      }));
+      console.log('[STARTUP] API y Socket.IO escuchando en:');
+      console.log(`  -> http://${HOST === '0.0.0.0' ? 'localhost' : HOST}:${PORT}`);
+      addrs.forEach(a => console.log(`  -> http://${a}:${PORT}`));
+      console.log(`  Entorno: ${process.env.NODE_ENV || 'development'}`);
     });
 
     // Graceful shutdown

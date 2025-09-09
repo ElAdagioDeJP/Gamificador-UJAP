@@ -3,12 +3,48 @@
 .subject-card { padding: 16px; }
 .subject-header { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 12px; }
 .professors { display: flex; gap: 8px; flex-wrap: wrap; }
-.professor-chip { display: inline-flex; align-items: center; gap: 6px; padding: 4px 8px; border: 1px solid #e5e7eb; border-radius: 9999px; background: #fff; }
-.professor-chip img { width: 20px; height: 20px; border-radius: 9999px; }
+/* Chips de profesores reemplazados por iniciales */
+.professor-initial-chip { width:32px; height:32px; display:flex; align-items:center; justify-content:center; background: var(--pixel-blue-light); border:2px solid var(--pixel-blue-dark); border-radius:6px; box-shadow: var(--pixel-shadow-sm); position:relative; }
+.professor-initial-chip:nth-child(2n) { background: var(--pixel-purple-light); border-color: var(--pixel-purple-dark); }
+.professor-initial-chip:nth-child(3n) { background: var(--pixel-green-light); border-color: var(--pixel-green-dark); }
+.prof-initials { font-size:10px; font-weight:bold; color:#111; }
 .assignments { display: flex; flex-direction: column; gap: 8px; }
-.assignment-row { display: flex; align-items: center; justify-content: space-between; padding: 8px 10px; border: 1px dashed #e5e7eb; border-radius: 8px; background: #fafafa; }
+.assignment-row { display:flex; gap:12px; align-items:stretch; justify-content:space-between; padding:10px 12px; border:2px solid #1c1917; border-radius:6px; background:linear-gradient(135deg,#fff7ed,#fefce8); position:relative; box-shadow: var(--pixel-shadow-sm); }
+.assignment-row:hover { transform: translate(-2px,-2px); box-shadow: var(--pixel-shadow); }
+.assignment-main { flex:1; display:flex; flex-direction:column; gap:4px; }
+.assignment-title-line { display:flex; align-items:center; justify-content:space-between; gap:8px; }
 .assignment-title { font-weight: 600; }
 .assignment-meta { font-size: 12px; color: #6b7280; }
-.assignment-weight { font-weight: 700; }
+.assignment-weight { font-weight:700; min-width:60px; text-align:right; font-size:10px; }
 .badge { display:inline-block; padding:2px 6px; border-radius:9999px; font-size:12px; border:1px solid #e5e7eb; }
 .badge-muted { background:#f3f4f6; color:#374151; }
+
+/* Dificultad */
+.difficulty-badge { font-size:8px; padding:2px 4px; border:2px solid #1c1917; background:#fff; text-transform:uppercase; letter-spacing:1px; }
+.difficulty-badge.diff-basica, .difficulty-badge.diff-básica { background: var(--pixel-green-light); }
+.difficulty-badge.diff-avanzada { background: var(--pixel-orange-light); }
+.difficulty-badge.diff-epica, .difficulty-badge.diff-épica { background: var(--pixel-purple-light); }
+
+/* Barra de peso */
+.weight-bar-wrap { margin-top:2px; }
+.weight-bar-bg { width:100%; height:6px; background:#e2e8f0; border:2px solid #1c1917; position:relative; }
+.weight-bar-fill { height:100%; background:linear-gradient(90deg,var(--pixel-blue),var(--pixel-purple)); }
+
+/* Stats header */
+.subjects-stats { display:flex; gap:12px; margin-bottom:12px; flex-wrap:wrap; }
+.stat-box { background:linear-gradient(135deg,var(--pixel-yellow-light),var(--pixel-bg-card)); border:2px solid #1c1917; padding:8px 10px; display:flex; flex-direction:column; align-items:flex-start; gap:4px; min-width:110px; box-shadow: var(--pixel-shadow-sm); }
+.stat-label { font-size:8px; color:var(--pixel-text-secondary); }
+.stat-value { font-size:12px; }
+
+/* Subject state */
+.subject-weight-total { font-size:8px; color:var(--pixel-text-secondary); }
+.subject-subinfo { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+.subject-title-block { display:flex; flex-direction:column; gap:4px; }
+.subject-overweight { outline:2px solid var(--pixel-red); animation: pixelPulse 2s infinite; }
+
+/* Responsive adjustments */
+@media (max-width: 640px) {
+	.assignment-row { flex-direction:column; align-items:flex-start; }
+	.assignment-weight { text-align:left; }
+	.subjects-grid { grid-template-columns: 1fr; }
+}

@@ -1,4 +1,4 @@
-const API_BASE_URL = process.env.REACT_APP_API_URL || "http://172.16.0.32:5000/api";
+const API_BASE_URL = process.env.REACT_APP_API_URL || "http://192.168.31.61:5000/api";
 
 async function request(path, options = {}) {
   const token = options.token || localStorage.getItem('token');
