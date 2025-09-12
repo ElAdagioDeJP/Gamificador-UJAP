@@ -22,7 +22,8 @@ exports.getAllProfessors = async (req, res, next) => {
         {
           model: SolicitudProfesor,
           as: 'SolicitudProfesor',
-          required: false
+          required: false,
+          attributes: ['carnet_institucional_url', 'estado', 'motivo_rechazo', 'fecha_revision']
         }
       ],
       attributes: [
@@ -98,7 +99,8 @@ exports.getProfessorDetails = async (req, res, next) => {
         {
           model: SolicitudProfesor,
           as: 'SolicitudProfesor',
-          required: false
+          required: false,
+          attributes: ['carnet_institucional_url', 'estado', 'motivo_rechazo', 'fecha_revision']
         }
       ],
       attributes: [

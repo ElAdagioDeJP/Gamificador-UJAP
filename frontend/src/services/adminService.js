@@ -34,5 +34,21 @@ export const adminService = {
 
     const response = await api.put(`/admin/professors/${professorId}/status`, data);
     return response.data;
+  },
+
+  // Asignar materias a un profesor
+  assignSubjectsToProfessor: async (professorId, subjectIds) => {
+    const response = await api.post(`/admin/professors/${professorId}/subjects`, {
+      subject_ids: subjectIds
+    });
+    return response.data;
+  },
+
+  // Asignar profesores a una materia
+  assignProfessorsToSubject: async (subjectId, professorIds) => {
+    const response = await api.post(`/admin/subjects/${subjectId}/professors`, {
+      professor_ids: professorIds
+    });
+    return response.data;
   }
 };

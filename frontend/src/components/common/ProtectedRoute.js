@@ -17,7 +17,12 @@ const ProtectedRoute = ({ children, allowedRoles = ["estudiante", "profesor"] })
   // Verificar si el usuario tiene el rol permitido
   if (!allowedRoles.includes(user.rol)) {
     // Redirigir al dashboard correspondiente según el rol
-    const redirectPath = user.rol === "profesor" ? "/teacher" : "/"
+    let redirectPath = "/"
+    if (user.rol === "admin") {
+      redirectPath = "/admin"
+    } else if (user.rol === "profesor" || user.rol === "teacher") {
+      redirectPath = "/teacher"
+    }
     return <Navigate to={redirectPath} replace />
   }
 

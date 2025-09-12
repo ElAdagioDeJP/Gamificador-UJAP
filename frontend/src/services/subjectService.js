@@ -26,5 +26,29 @@ export const subjectService = {
   async getTeacherSubjects() {
     const { data } = await request('/teacher/subjects');
     return data;
+  },
+  async getAllSubjects() {
+    const { data } = await request('/admin/subjects');
+    return data;
+  },
+  async createSubject(subjectData) {
+    const { data } = await request('/admin/subjects', {
+      method: 'POST',
+      body: subjectData
+    });
+    return data;
+  },
+  async updateSubject(subjectId, subjectData) {
+    const { data } = await request(`/admin/subjects/${subjectId}`, {
+      method: 'PUT',
+      body: subjectData
+    });
+    return data;
+  },
+  async deleteSubject(subjectId) {
+    const { data } = await request(`/admin/subjects/${subjectId}`, {
+      method: 'DELETE'
+    });
+    return data;
   }
 };

@@ -3,6 +3,7 @@ import { AuthProvider } from "./context/AuthContext"
 import { GameProvider } from "./context/GameContext"
 import Layout from "./components/layout/Layout"
 import TeacherLayout from "./components/layout/TeacherLayout"
+import AdminLayout from "./components/layout/AdminLayout"
 import Login from "./pages/Login"
 import Register from "./pages/Register"
 import Dashboard from "./pages/Dashboard"
@@ -20,6 +21,8 @@ import TeacherProfile from "./pages/teacher/TeacherProfile"
 import TeacherSubjects from "./pages/teacher/TeacherSubjects"
 import ProfessorRequests from "./pages/admin/ProfessorRequests"
 import AdminDashboard from "./pages/admin/AdminDashboard"
+import AdminProfessors from "./pages/admin/AdminProfessors"
+import AdminSubjects from "./pages/admin/AdminSubjects"
 import ProtectedRoute from "./components/common/ProtectedRoute"
 import "./styles/global.css"
 
@@ -172,9 +175,9 @@ function App() {
                 path="/admin"
                 element={
                   <ProtectedRoute allowedRoles={["admin"]}>
-                    <TeacherLayout>
+                    <AdminLayout>
                       <AdminDashboard />
-                    </TeacherLayout>
+                    </AdminLayout>
                   </ProtectedRoute>
                 }
               />
@@ -182,9 +185,29 @@ function App() {
                 path="/admin/professor-requests"
                 element={
                   <ProtectedRoute allowedRoles={["admin"]}>
-                    <TeacherLayout>
+                    <AdminLayout>
                       <ProfessorRequests />
-                    </TeacherLayout>
+                    </AdminLayout>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/professors"
+                element={
+                  <ProtectedRoute allowedRoles={["admin"]}>
+                    <AdminLayout>
+                      <AdminProfessors />
+                    </AdminLayout>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/subjects"
+                element={
+                  <ProtectedRoute allowedRoles={["admin"]}>
+                    <AdminLayout>
+                      <AdminSubjects />
+                    </AdminLayout>
                   </ProtectedRoute>
                 }
               />

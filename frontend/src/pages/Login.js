@@ -35,9 +35,15 @@ const Login = () => {
   }, [user]);
 
   if (user) {
-    console.log('Usuario logueado, redirigiendo a:', user.role === "teacher" ? "/teacher" : "/");
+    console.log('Usuario logueado, redirigiendo a:', user.rol);
     // Redirigir según el rol del usuario
-    return <Navigate to={user.role === "teacher" ? "/teacher" : "/"} replace />
+    if (user.rol === "admin") {
+      return <Navigate to="/admin" replace />
+    } else if (user.rol === "profesor" || user.rol === "teacher") {
+      return <Navigate to="/teacher" replace />
+    } else {
+      return <Navigate to="/" replace />
+    }
   }
 
   const handleChange = (e) => {
