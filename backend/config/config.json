@@ -1,28 +1,34 @@
 {
   "development": {
-    "use_env_variable": "DATABASE_URL",
     "username": "root",
-    "password": "",
+    "password": "jJUNIOR*27",
     "database": "studybooster_db",
     "host": "127.0.0.1",
+    "port": 3306,
     "dialect": "mysql",
-    "logging": false
+    "logging": false,
+    "pool": {
+      "max": 5,
+      "min": 0,
+      "acquire": 30000,
+      "idle": 10000
+    }
   },
   "test": {
-    "use_env_variable": "DATABASE_URL",
     "username": "root",
-    "password": "",
+    "password": "jJUNIOR*27",
     "database": "studybooster_db_test",
     "host": "127.0.0.1",
+    "port": 3306,
     "dialect": "mysql",
     "logging": false
   },
   "production": {
-    "use_env_variable": "DATABASE_URL",
     "username": "root",
-    "password": "",
+    "password": "jJUNIOR*27",
     "database": "studybooster_db",
     "host": "127.0.0.1",
+    "port": 3306,
     "dialect": "mysql",
     "logging": false
   }

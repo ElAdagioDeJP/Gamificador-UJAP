@@ -4,14 +4,6 @@ const bcrypt = require('bcryptjs');
 
 module.exports = (sequelize, DataTypes) => {
   const Usuario = sequelize.define('Usuario', {
-    universidad: {
-      type: DataTypes.STRING(100),
-      allowNull: true,
-    },
-    carrera: {
-      type: DataTypes.STRING(100),
-      allowNull: true,
-    },
     id_usuario: {
       type: DataTypes.INTEGER.UNSIGNED,
       autoIncrement: true,
@@ -70,7 +62,7 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: true,
     },
   }, {
-    tableName: 'Usuarios',
+    tableName: 'usuarios',
     timestamps: true,
     createdAt: 'fecha_creacion',
     updatedAt: false,

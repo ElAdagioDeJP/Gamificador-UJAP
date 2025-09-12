@@ -291,3 +291,30 @@
     font-size: 14px;
   }
 }
+
+/* Estilos para términos y condiciones */
+.terms-link-container {
+  margin-top: 15px;
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+.terms-link {
+  background: none;
+  border: none;
+  color: var(--pixel-blue);
+  text-decoration: underline;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: inherit;
+  font-family: inherit;
+  padding: 0;
+  margin: 0;
+  transition: var(--pixel-transition);
+}
+
+.terms-link:hover {
+  color: var(--pixel-blue-dark);
+  text-decoration: none;
+  transform: translateY(-1px);
+}

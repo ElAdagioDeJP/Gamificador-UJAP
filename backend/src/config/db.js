@@ -1,4 +1,5 @@
-const { sequelize } = require('../../models');
+const models = require('../../models');
+const { sequelize } = models;
 
 async function ensureSchema() {
   const qi = sequelize.getQueryInterface();
@@ -30,10 +31,9 @@ async function ensureSchema() {
 async function connectDB() {
   try {
     await sequelize.authenticate();
-  await ensureSchema();
-    // Sync only essential tables for now. In real projects, prefer migrations.
-    await sequelize.sync();
     console.log('MySQL connected via Sequelize');
+    // No usar sync() cuando se usan migraciones
+    // await sequelize.sync();
   } catch (err) {
     console.error('DB connection error:', err);
     throw err;

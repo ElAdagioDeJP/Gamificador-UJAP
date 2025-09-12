@@ -4,6 +4,7 @@ import { useState } from "react"
 import { Link, Navigate } from "react-router-dom"
 import { useAuth } from "../context/AuthContext"
 import Card from "../components/common/Card"
+import TermsModal from "../components/common/TermsModal"
 import "../styles/Auth.css"
 
 const Login = () => {
@@ -14,6 +15,7 @@ const Login = () => {
   })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
+  const [showTerms, setShowTerms] = useState(false)
 
   if (user) {
     // Redirigir según el rol del usuario
@@ -120,6 +122,16 @@ const Login = () => {
                 Regístrate aquí
               </Link>
             </p>
+            <p className="terms-link-container">
+              Al usar StudyBooster, aceptas nuestros{" "}
+              <button 
+                type="button" 
+                className="terms-link" 
+                onClick={() => setShowTerms(true)}
+              >
+                Términos y Condiciones
+              </button>
+            </p>
           </div>
 
           <div className="auth-demo">
@@ -156,6 +168,12 @@ const Login = () => {
           </div>
         </Card>
       </div>
+
+      {/* Modal de Términos y Condiciones */}
+      <TermsModal 
+        isOpen={showTerms} 
+        onClose={() => setShowTerms(false)} 
+      />
     </div>
   )
 }

@@ -1,16 +1,6 @@
 // Servicio real de autenticación contra el backend
-// Determina dinámicamente la URL de la API para evitar hardcodear IPs internas que causan timeouts en otras redes.
-let API_BASE_URL = process.env.REACT_APP_API_URL;
-if (!API_BASE_URL) {
-  const { protocol, hostname } = window.location;
-  // Si el frontend corre en localhost:3000 usamos mismo host con puerto 5000
-  if (hostname === 'localhost' || hostname === '172.16.0.32') {
-    API_BASE_URL = `${protocol}//${hostname}:5000/api`;
-  } else {
-    // fallback razonable (puede ajustarse vía REACT_APP_API_URL)
-    API_BASE_URL = `${protocol}//${hostname}/api`;
-  }
-}
+// Usa la variable de entorno REACT_APP_API_URL para la URL del backend
+const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:5000/api";
 
 async function request(path, options = {}) {
   const res = await fetch(`${API_BASE_URL}${path}`, {

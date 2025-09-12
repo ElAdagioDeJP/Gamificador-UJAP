@@ -6,7 +6,9 @@
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "update-ip": "node scripts/update-ip.js",
+    "update-ip:custom": "node scripts/update-ip.js --ip"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",

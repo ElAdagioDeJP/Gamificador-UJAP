@@ -7,8 +7,20 @@
   "scripts": {
     "start": "node src/server.js",
     "dev": "nodemon src/server.js",
-  "seed:admin": "node scripts/createAdmin.js",
-  "db:seed": "node scripts/seedDB.js"
+    "db:check": "node scripts/check-db.js",
+    "migrate": "npm run db:check && node scripts/migrate.js",
+    "migrate:reset": "node scripts/migrate.js --reset",
+    "migrate:status": "node scripts/migrate.js --status",
+    "migrate:create": "npx sequelize-cli migration:generate --name",
+    "migrate:regenerate": "node scripts/regenerate-migrations.js",
+    "migrate:full": "npm run migrate:regenerate && npm run migrate:reset && npm run migrate",
+    "setup:env": "node scripts/setup-env.js",
+    "setup:env:force": "node scripts/setup-env.js --force",
+    "sync:ip": "node scripts/sync-ip.js",
+    "sync:ip:custom": "node scripts/sync-ip.js --ip",
+    "seed:admin": "node scripts/createAdmin.js",
+    "db:seed": "node scripts/seedDB.js",
+    "db:setup": "npm run setup:env && npm run migrate && npm run seed:admin"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",

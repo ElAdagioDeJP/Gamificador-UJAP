@@ -1,0 +1,351 @@
+/* Modal Overlay */
+.terms-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  padding: 20px;
+  backdrop-filter: blur(4px);
+}
+
+/* Modal Content */
+.terms-modal-content {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 20px;
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
+  max-width: 800px;
+  width: 100%;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+}
+
+/* Modal Header */
+.terms-modal-header {
+  background: rgba(255, 255, 255, 0.95);
+  padding: 20px 30px;
+  border-bottom: 3px solid #667eea;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.terms-modal-title {
+  color: #2d3748;
+  font-size: 1.8rem;
+  font-weight: 700;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.terms-modal-close {
+  background: #e53e3e;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  font-size: 1.2rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(229, 62, 62, 0.3);
+}
+
+.terms-modal-close:hover {
+  background: #c53030;
+  transform: scale(1.1);
+  box-shadow: 0 6px 16px rgba(229, 62, 62, 0.4);
+}
+
+/* Modal Body */
+.terms-modal-body {
+  background: white;
+  padding: 30px;
+  overflow-y: auto;
+  flex: 1;
+  line-height: 1.6;
+}
+
+/* Terms Sections */
+.terms-section {
+  margin-bottom: 25px;
+  padding: 20px;
+  background: #f8fafc;
+  border-radius: 12px;
+  border-left: 4px solid #667eea;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.terms-section h3 {
+  color: #2d3748;
+  font-size: 1.3rem;
+  font-weight: 600;
+  margin: 0 0 15px 0;
+  padding-bottom: 8px;
+  border-bottom: 2px solid #e2e8f0;
+}
+
+.terms-section p {
+  color: #4a5568;
+  margin: 0 0 15px 0;
+  font-size: 1rem;
+}
+
+.terms-section ul {
+  margin: 10px 0;
+  padding-left: 20px;
+}
+
+.terms-section li {
+  color: #4a5568;
+  margin-bottom: 8px;
+  position: relative;
+}
+
+.terms-section li::marker {
+  color: #667eea;
+  font-weight: bold;
+}
+
+.terms-section strong {
+  color: #2d3748;
+  font-weight: 600;
+}
+
+/* Special styling for data collection section */
+.terms-section:nth-child(4) {
+  background: linear-gradient(135deg, #fef5e7 0%, #fed7aa 100%);
+  border-left-color: #f59e0b;
+}
+
+.terms-section:nth-child(4) h3 {
+  color: #92400e;
+  border-bottom-color: #fbbf24;
+}
+
+/* Special styling for gamification section */
+.terms-section:nth-child(5) {
+  background: linear-gradient(135deg, #f0f9ff 0%, #bae6fd 100%);
+  border-left-color: #0ea5e9;
+}
+
+.terms-section:nth-child(5) h3 {
+  color: #0c4a6e;
+  border-bottom-color: #38bdf8;
+}
+
+/* Terms Footer */
+.terms-footer {
+  background: #2d3748;
+  color: white;
+  padding: 20px;
+  border-radius: 12px;
+  margin-top: 20px;
+  text-align: center;
+}
+
+.terms-last-updated,
+.terms-version {
+  margin: 5px 0;
+  font-size: 0.9rem;
+  opacity: 0.9;
+}
+
+/* Modal Footer */
+.terms-modal-footer {
+  background: rgba(255, 255, 255, 0.95);
+  padding: 20px 30px;
+  border-top: 3px solid #667eea;
+  display: flex;
+  justify-content: flex-end;
+  gap: 15px;
+  position: sticky;
+  bottom: 0;
+}
+
+/* Buttons */
+.terms-btn {
+  padding: 12px 24px;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-width: 120px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.terms-btn-primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.terms-btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+}
+
+.terms-btn-secondary {
+  background: #e2e8f0;
+  color: #4a5568;
+}
+
+.terms-btn-secondary:hover {
+  background: #cbd5e0;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .terms-modal-overlay {
+    padding: 10px;
+  }
+  
+  .terms-modal-content {
+    max-height: 95vh;
+    border-radius: 15px;
+  }
+  
+  .terms-modal-header {
+    padding: 15px 20px;
+  }
+  
+  .terms-modal-title {
+    font-size: 1.5rem;
+  }
+  
+  .terms-modal-body {
+    padding: 20px;
+  }
+  
+  .terms-section {
+    padding: 15px;
+    margin-bottom: 20px;
+  }
+  
+  .terms-section h3 {
+    font-size: 1.2rem;
+  }
+  
+  .terms-modal-footer {
+    padding: 15px 20px;
+    flex-direction: column;
+  }
+  
+  .terms-btn {
+    width: 100%;
+    margin: 5px 0;
+  }
+}
+
+@media (max-width: 480px) {
+  .terms-modal-overlay {
+    padding: 5px;
+  }
+  
+  .terms-modal-content {
+    border-radius: 10px;
+  }
+  
+  .terms-modal-header {
+    padding: 12px 15px;
+  }
+  
+  .terms-modal-title {
+    font-size: 1.3rem;
+  }
+  
+  .terms-modal-body {
+    padding: 15px;
+  }
+  
+  .terms-section {
+    padding: 12px;
+    margin-bottom: 15px;
+  }
+  
+  .terms-section h3 {
+    font-size: 1.1rem;
+  }
+  
+  .terms-modal-footer {
+    padding: 12px 15px;
+  }
+}
+
+/* Scrollbar Styling */
+.terms-modal-body::-webkit-scrollbar {
+  width: 8px;
+}
+
+.terms-modal-body::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.terms-modal-body::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 4px;
+}
+
+.terms-modal-body::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, #5a67d8 0%, #6b46c1 100%);
+}
+
+/* Animation */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.terms-modal-content {
+  animation: fadeIn 0.3s ease-out;
+}
+
+/* Print Styles */
+@media print {
+  .terms-modal-overlay {
+    position: static;
+    background: white;
+    padding: 0;
+  }
+  
+  .terms-modal-content {
+    box-shadow: none;
+    border-radius: 0;
+    max-height: none;
+  }
+  
+  .terms-modal-header,
+  .terms-modal-footer {
+    display: none;
+  }
+  
+  .terms-modal-body {
+    padding: 0;
+  }
+}
