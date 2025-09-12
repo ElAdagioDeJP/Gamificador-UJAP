@@ -12,6 +12,11 @@
       "min": 0,
       "acquire": 30000,
       "idle": 10000
+    },
+    "define": {
+      "timestamps": true,
+      "underscored": true,
+      "freezeTableName": true
     }
   },
   "test": {
@@ -21,7 +26,12 @@
     "host": "127.0.0.1",
     "port": 3306,
     "dialect": "mysql",
-    "logging": false
+    "logging": false,
+    "define": {
+      "timestamps": true,
+      "underscored": true,
+      "freezeTableName": true
+    }
   },
   "production": {
     "username": "root",
@@ -30,6 +40,11 @@
     "host": "127.0.0.1",
     "port": 3306,
     "dialect": "mysql",
-    "logging": false
+    "logging": false,
+    "define": {
+      "timestamps": true,
+      "underscored": true,
+      "freezeTableName": true
+    }
   }
 }

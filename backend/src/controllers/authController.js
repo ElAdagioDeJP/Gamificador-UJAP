@@ -13,13 +13,29 @@ exports.register = async (req, res, next) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      const err = new Error('Validation error');
-      err.status = 400;
-      err.errors = errors.array();
-      throw err;
+      return res.status(400).json({
+        success: false,
+        message: 'Datos de registro inválidos',
+        errors: errors.array()
+      });
     }
 
-  const { username, email, password, name, rol, sexo, university, career } = req.body;
+    const { username, email, password, name, rol, sexo, university, career } = req.body;
+
+    // Validaciones adicionales
+    if (!email || !password) {
+      return res.status(400).json({
+        success: false,
+        message: 'Email y contraseña son requeridos'
+      });
+    }
+
+    if (password.length < 6) {
+      return res.status(400).json({
+        success: false,
+        message: 'La contraseña debe tener al menos 6 caracteres'
+      });
+    }
 
     // Map frontend fields to DB columns
     const nombre_usuario = username || email.split('@')[0];
@@ -35,10 +51,12 @@ exports.register = async (req, res, next) => {
         ],
       },
     });
+    
     if (exists) {
-      const err = new Error('User already exists with same email or username');
-      err.status = 409;
-      throw err;
+      return res.status(409).json({
+        success: false,
+        message: 'Ya existe un usuario con este email o nombre de usuario'
+      });
     }
 
     const user = await Usuario.create({
@@ -48,14 +66,22 @@ exports.register = async (req, res, next) => {
       contrasena_hash: password,
       rol: rol || 'estudiante',
       sexo: (sexo === 'M' || sexo === 'F') ? sexo : null,
-      universidad: university || null,
-      carrera: career || null,
+      estado_verificacion: rol === 'profesor' ? 'PENDIENTE' : 'VERIFICADO'
     });
+    
     const token = signToken(user);
 
-    res.status(201).json({ success: true, data: { user: user.toSafeJSON(), token } });
-  } catch (e) {
-    next(e);
+    res.status(201).json({ 
+      success: true, 
+      message: 'Usuario registrado exitosamente',
+      data: { 
+        user: user.toSafeJSON(), 
+        token 
+      } 
+    });
+  } catch (error) {
+    console.error('Error en registro:', error);
+    next(error);
   }
 };
 
