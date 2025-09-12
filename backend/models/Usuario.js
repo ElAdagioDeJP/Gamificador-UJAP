@@ -37,9 +37,13 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: false,
     },
     rol: {
-      type: DataTypes.ENUM('estudiante', 'profesor'),
+      type: DataTypes.ENUM('estudiante', 'profesor', 'admin'),
       allowNull: false,
       defaultValue: 'estudiante',
+    },
+    estado_verificacion: {
+      type: DataTypes.ENUM('PENDIENTE', 'VERIFICADO', 'RECHAZADO'),
+      defaultValue: 'VERIFICADO',
     },
     puntos_actuales: {
       type: DataTypes.INTEGER,

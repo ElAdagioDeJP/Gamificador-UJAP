@@ -85,6 +85,29 @@ exports.login = async (req, res, next) => {
       throw err;
     }
 
+    // Verificar estado de verificación para profesores
+    if (user.rol === 'profesor' && user.estado_verificacion === 'PENDIENTE') {
+      return res.status(403).json({
+        success: false,
+        message: 'Su solicitud de profesor está pendiente de aprobación. Por favor, espere la confirmación de un administrador.',
+        data: { 
+          user: user.toSafeJSON(),
+          verificationStatus: 'PENDING'
+        }
+      });
+    }
+
+    if (user.rol === 'profesor' && user.estado_verificacion === 'RECHAZADO') {
+      return res.status(403).json({
+        success: false,
+        message: 'Su solicitud de profesor ha sido rechazada. Contacte al administrador para más información.',
+        data: { 
+          user: user.toSafeJSON(),
+          verificationStatus: 'REJECTED'
+        }
+      });
+    }
+
     const token = signToken(user);
     res.json({ success: true, data: { user: user.toSafeJSON(), token } });
   } catch (e) {

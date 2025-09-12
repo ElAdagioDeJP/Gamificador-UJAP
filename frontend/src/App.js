@@ -18,6 +18,8 @@ import Assignments from "./pages/teacher/Assignments"
 import Grading from "./pages/teacher/Grading"
 import TeacherProfile from "./pages/teacher/TeacherProfile"
 import TeacherSubjects from "./pages/teacher/TeacherSubjects"
+import ProfessorRequests from "./pages/admin/ProfessorRequests"
+import AdminDashboard from "./pages/admin/AdminDashboard"
 import ProtectedRoute from "./components/common/ProtectedRoute"
 import "./styles/global.css"
 
@@ -160,6 +162,28 @@ function App() {
                   <ProtectedRoute allowedRoles={["profesor"]}>
                     <TeacherLayout>
                       <TeacherSubjects />
+                    </TeacherLayout>
+                  </ProtectedRoute>
+                }
+              />
+
+              {/* Rutas de administradores */}
+              <Route
+                path="/admin"
+                element={
+                  <ProtectedRoute allowedRoles={["admin"]}>
+                    <TeacherLayout>
+                      <AdminDashboard />
+                    </TeacherLayout>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/professor-requests"
+                element={
+                  <ProtectedRoute allowedRoles={["admin"]}>
+                    <TeacherLayout>
+                      <ProfessorRequests />
                     </TeacherLayout>
                   </ProtectedRoute>
                 }

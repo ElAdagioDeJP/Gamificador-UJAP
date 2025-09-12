@@ -4,6 +4,8 @@ import { useState } from "react"
 import { Link, Navigate } from "react-router-dom"
 import { useAuth } from "../context/AuthContext"
 import Card from "../components/common/Card"
+import NotificationModal from "../components/common/NotificationModal"
+import { professorRequestService } from "../services/professorRequestService"
 import "../styles/Auth.css"
 
 const Register = () => {
@@ -87,10 +89,14 @@ const Register = () => {
     confirmPassword: "",
     university: "",
     career: "",
-  sexo: "M",
+    sexo: "M",
+    rol: "estudiante", // Nuevo campo para el rol
   })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
+  const [carnetFile, setCarnetFile] = useState(null)
+  const [showNotification, setShowNotification] = useState(false)
+  const [notificationData, setNotificationData] = useState({})
 
   if (user) {
     return <Navigate to="/" replace />
@@ -106,6 +112,25 @@ const Register = () => {
     })
   }
 
+  const handleFileChange = (e) => {
+    const file = e.target.files[0]
+    if (file) {
+      // Validar tipo de archivo
+      const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf']
+      if (!allowedTypes.includes(file.type)) {
+        setError('Solo se permiten archivos JPEG, JPG, PNG o PDF')
+        return
+      }
+      // Validar tamaño (5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        setError('El archivo no debe superar los 5MB')
+        return
+      }
+      setCarnetFile(file)
+      setError('')
+    }
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault()
     setLoading(true)
@@ -117,15 +142,55 @@ const Register = () => {
       return
     }
 
-  const { confirmPassword, ...registerData } = formData
-    const result = await register(registerData)
-    if (!result.success) {
-      setError(result.error)
+    // Validar que si es profesor, debe subir carnet
+    if (formData.rol === 'profesor' && !carnetFile) {
+      setError("Debe subir una imagen de su carnet institucional para registrarse como profesor")
       setLoading(false)
       return
     }
+
+    try {
+      if (formData.rol === 'profesor') {
+        // Crear solicitud de profesor
+        const formDataToSend = new FormData()
+        formDataToSend.append('nombre_usuario', formData.email.split('@')[0])
+        formDataToSend.append('nombre_completo', formData.name)
+        formDataToSend.append('email_institucional', formData.email)
+        formDataToSend.append('sexo', formData.sexo)
+        formDataToSend.append('contrasena', formData.password)
+        formDataToSend.append('carnetInstitucional', carnetFile)
+
+        const result = await professorRequestService.createProfessorRequest(formDataToSend)
+        
+        setNotificationData({
+          type: 'success',
+          title: '¡Solicitud Enviada!',
+          message: 'Su solicitud de profesor ha sido enviada correctamente. Recibirá una notificación por email cuando sea aprobada. Mientras tanto, puede explorar la plataforma como visitante.',
+          confirmText: 'Continuar'
+        })
+        setShowNotification(true)
+      } else {
+        // Registro normal de estudiante
+        const { confirmPassword, rol, ...registerData } = formData
+        const result = await register(registerData)
+        if (!result.success) {
+          setError(result.error)
+          setLoading(false)
+          return
+        }
+        setRedirectToLogin(true)
+      }
+    } catch (error) {
+      setError(error.message || 'Error al procesar la solicitud')
+    }
+    
     setLoading(false)
-    setRedirectToLogin(true)
+  }
+
+  const handleNotificationClose = () => {
+    setShowNotification(false)
+    // Redirigir a la página principal en lugar del login
+    window.location.href = '/'
   }
 
   return (
@@ -218,6 +283,68 @@ const Register = () => {
             </div>
 
             <fieldset className="form-group">
+              <legend className="form-label">Tipo de Usuario</legend>
+              <div className="form-row">
+                <label className="radio-inline" htmlFor="rolEstudiante">
+                  <input 
+                    id="rolEstudiante" 
+                    type="radio" 
+                    name="rol" 
+                    value="estudiante" 
+                    checked={formData.rol === 'estudiante'} 
+                    onChange={handleChange} 
+                  /> Estudiante
+                </label>
+                <label className="radio-inline" htmlFor="rolProfesor" style={{ marginLeft: '1rem' }}>
+                  <input 
+                    id="rolProfesor" 
+                    type="radio" 
+                    name="rol" 
+                    value="profesor" 
+                    checked={formData.rol === 'profesor'} 
+                    onChange={handleChange} 
+                  /> Profesor
+                </label>
+              </div>
+            </fieldset>
+
+            {formData.rol === 'profesor' && (
+              <div className="form-group">
+                <label htmlFor="carnetInstitucional" className="form-label">
+                  Carnet Institucional *
+                </label>
+                <div className="file-upload-container">
+                  <input
+                    type="file"
+                    id="carnetInstitucional"
+                    name="carnetInstitucional"
+                    onChange={handleFileChange}
+                    accept=".jpg,.jpeg,.png,.pdf"
+                    className="file-input"
+                    required
+                  />
+                  <label htmlFor="carnetInstitucional" className="file-upload-label">
+                    <div className="file-upload-content">
+                      <svg className="file-upload-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                      </svg>
+                      <span className="file-upload-text">
+                        {carnetFile ? carnetFile.name : 'Subir imagen del carnet institucional'}
+                      </span>
+                      <span className="file-upload-hint">JPEG, PNG o PDF (máx. 5MB)</span>
+                    </div>
+                  </label>
+                </div>
+                {carnetFile && (
+                  <div className="file-preview">
+                    <span className="file-preview-name">✓ {carnetFile.name}</span>
+                    <span className="file-preview-size">({(carnetFile.size / 1024 / 1024).toFixed(2)} MB)</span>
+                  </div>
+                )}
+              </div>
+            )}
+
+            <fieldset className="form-group">
               <legend className="form-label">Sexo</legend>
               <div className="form-row">
                 <label className="radio-inline" htmlFor="sexoM">
@@ -283,6 +410,14 @@ const Register = () => {
           </div>
         </Card>
       </div>
+
+      {/* Modal de notificación */}
+      <NotificationModal
+        isOpen={showNotification}
+        onClose={handleNotificationClose}
+        onConfirm={handleNotificationClose}
+        {...notificationData}
+      />
     </div>
   )
 }

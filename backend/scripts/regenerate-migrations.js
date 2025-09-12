@@ -2,7 +2,7 @@
 
 const fs = require('fs');
 const path = require('path');
-const { createModels } = require('../models');
+const { createModels } = require('../models/models');
 const { Sequelize } = require('sequelize');
 
 // Colores para la consola

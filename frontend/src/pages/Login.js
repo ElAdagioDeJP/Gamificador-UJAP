@@ -1,10 +1,12 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Link, Navigate } from "react-router-dom"
 import { useAuth } from "../context/AuthContext"
 import Card from "../components/common/Card"
 import TermsModal from "../components/common/TermsModal"
+import NotificationModal from "../components/common/NotificationModal"
+import { debugAuth, checkAuthState, forceLogout } from "../utils/debug"
 import "../styles/Auth.css"
 
 const Login = () => {
@@ -16,8 +18,24 @@ const Login = () => {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
   const [showTerms, setShowTerms] = useState(false)
+  const [showNotification, setShowNotification] = useState(false)
+  const [notificationData, setNotificationData] = useState({})
+
+  useEffect(() => {
+    // Debug del estado de autenticación
+    console.log('=== LOGIN COMPONENT DEBUG ===');
+    console.log('user from context:', user);
+    console.log('checkAuthState:', checkAuthState());
+    
+    // Si hay un usuario pero no se está mostrando, forzar logout
+    if (checkAuthState() && !user) {
+      console.log('Hay token en localStorage pero no hay usuario en context, forzando logout');
+      forceLogout();
+    }
+  }, [user]);
 
   if (user) {
+    console.log('Usuario logueado, redirigiendo a:', user.role === "teacher" ? "/teacher" : "/");
     // Redirigir según el rol del usuario
     return <Navigate to={user.role === "teacher" ? "/teacher" : "/"} replace />
   }
@@ -37,7 +55,26 @@ const Login = () => {
     const result = await login(formData.email, formData.password)
 
     if (!result.success) {
-      setError(result.error)
+      // Manejar estados de verificación especiales
+      if (result.verificationStatus === 'PENDING') {
+        setNotificationData({
+          type: 'warning',
+          title: 'Solicitud Pendiente',
+          message: result.error,
+          confirmText: 'Entendido'
+        })
+        setShowNotification(true)
+      } else if (result.verificationStatus === 'REJECTED') {
+        setNotificationData({
+          type: 'error',
+          title: 'Solicitud Rechazada',
+          message: result.error,
+          confirmText: 'Entendido'
+        })
+        setShowNotification(true)
+      } else {
+        setError(result.error)
+      }
     }
 
     setLoading(false)
@@ -166,6 +203,36 @@ const Login = () => {
               </div>
             </div>
           </div>
+
+          {/* Botones de Debug */}
+          <div className="auth-debug" style={{ marginTop: '20px', padding: '15px', border: '1px solid #ddd', borderRadius: '8px', backgroundColor: '#f8f9fa' }}>
+            <p style={{ margin: '0 0 10px 0', fontWeight: 'bold', color: '#666' }}>🔧 Debug Tools</p>
+            <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+              <button 
+                type="button" 
+                onClick={debugAuth}
+                style={{ padding: '8px 12px', backgroundColor: '#e74c3c', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
+              >
+                🧹 Limpiar localStorage
+              </button>
+              <button 
+                type="button" 
+                onClick={() => window.location.reload()}
+                style={{ padding: '8px 12px', backgroundColor: '#3498db', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
+              >
+                🔄 Recargar página
+              </button>
+              <button 
+                type="button" 
+                onClick={() => {
+                  setFormData({ email: 'admin@edu.com', password: 'admin123' });
+                }}
+                style={{ padding: '8px 12px', backgroundColor: '#27ae60', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
+              >
+                👤 Llenar Admin
+              </button>
+            </div>
+          </div>
         </Card>
       </div>
 
@@ -173,6 +240,14 @@ const Login = () => {
       <TermsModal 
         isOpen={showTerms} 
         onClose={() => setShowTerms(false)} 
+      />
+
+      {/* Modal de notificación */}
+      <NotificationModal
+        isOpen={showNotification}
+        onClose={() => setShowNotification(false)}
+        onConfirm={() => setShowNotification(false)}
+        {...notificationData}
       />
     </div>
   )

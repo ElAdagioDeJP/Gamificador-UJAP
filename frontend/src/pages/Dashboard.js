@@ -3,6 +3,7 @@ import { useGame } from "../context/GameContext"
 import { useAuth } from "../context/AuthContext"
 import Card from "../components/common/Card"
 import LoadingSpinner from "../components/common/LoadingSpinner"
+import StatusBanner from "../components/common/StatusBanner"
 import "../styles/Dashboard.css"
 
 const Dashboard = () => {
@@ -40,6 +41,9 @@ const Dashboard = () => {
         <h1>¡Bienvenido de vuelta, {user?.name}! 🎉</h1>
         <p>Continúa tu aventura académica y alcanza nuevos logros</p>
       </div>
+
+      {/* Banner de estado para profesores */}
+      <StatusBanner user={user} />
 
       <div className="dashboard-stats">
         <Card className="stat-card level-card">

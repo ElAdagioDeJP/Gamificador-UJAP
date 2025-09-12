@@ -1,5 +1,7 @@
 const express = require('express');
 const authRoutes = require('./authRoutes');
+const professorRequestRoutes = require('./professorRequestRoutes');
+const adminRoutes = require('./adminRoutes');
 const { auth } = require('../middlewares/auth');
 const gameController = require('../controllers/gameController');
 const leaderboardController = require('../controllers/leaderboardController');
@@ -11,6 +13,8 @@ const missionController = require('../controllers/missionController');
 const router = express.Router();
 
 router.use('/auth', authRoutes);
+router.use('/professor-requests', professorRequestRoutes);
+router.use('/admin', adminRoutes);
 
 // Game data
 router.get('/game', auth(true), gameController.getSummary);

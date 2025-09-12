@@ -39,12 +39,21 @@ export const AuthProvider = ({ children }) => {
 
   const login = useCallback(async (email, password) => {
     try {
-  const response = await authService.login(email, password)
-  setUser(response.user)
-  localStorage.setItem("token", response.token)
-  localStorage.setItem("user", JSON.stringify(response.user))
+      const response = await authService.login(email, password)
+      setUser(response.user)
+      localStorage.setItem("token", response.token)
+      localStorage.setItem("user", JSON.stringify(response.user))
       return { success: true }
     } catch (error) {
+      // Manejar estados de verificación especiales
+      if (error.response?.status === 403 && error.response?.data?.data?.verificationStatus) {
+        return { 
+          success: false, 
+          error: error.response.data.message,
+          verificationStatus: error.response.data.data.verificationStatus,
+          user: error.response.data.data.user
+        }
+      }
       return { success: false, error: error.message }
     }
   }, [])

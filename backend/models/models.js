@@ -76,6 +76,10 @@ function createModels(sequelize) {
       type: DataTypes.DATEONLY,
       allowNull: true,
     },
+    estado_verificacion: {
+      type: DataTypes.ENUM('PENDIENTE', 'VERIFICADO', 'RECHAZADO'),
+      defaultValue: 'VERIFICADO',
+    },
   }, {
     tableName: 'usuarios',
     timestamps: true,
@@ -756,6 +760,46 @@ function createModels(sequelize) {
   });
 
   // ========================================
+  // MODELO: SOLICITUDES_PROFESORES
+  // ========================================
+  models.SolicitudProfesor = sequelize.define('SolicitudProfesor', {
+    id_solicitud: {
+      type: DataTypes.INTEGER.UNSIGNED,
+      autoIncrement: true,
+      primaryKey: true,
+    },
+    id_usuario: {
+      type: DataTypes.INTEGER.UNSIGNED,
+      allowNull: false,
+    },
+    carnet_institucional_url: {
+      type: DataTypes.STRING(500),
+      allowNull: false,
+    },
+    estado: {
+      type: DataTypes.ENUM('PENDIENTE', 'APROBADA', 'RECHAZADA'),
+      defaultValue: 'PENDIENTE',
+    },
+    motivo_rechazo: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+    },
+    fecha_revision: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
+    id_admin_revisor: {
+      type: DataTypes.INTEGER.UNSIGNED,
+      allowNull: true,
+    },
+  }, {
+    tableName: 'solicitudes_profesores',
+    timestamps: true,
+    createdAt: 'fecha_creacion',
+    updatedAt: 'fecha_actualizacion',
+  });
+
+  // ========================================
   // DEFINIR RELACIONES
   // ========================================
   
@@ -845,6 +889,14 @@ function createModels(sequelize) {
   // Tareas personales
   models.Usuario.hasMany(models.TareaPersonal, { foreignKey: 'id_usuario' });
   models.TareaPersonal.belongsTo(models.Usuario, { foreignKey: 'id_usuario' });
+
+  // Solicitudes de profesores
+  models.Usuario.hasOne(models.SolicitudProfesor, { foreignKey: 'id_usuario' });
+  models.SolicitudProfesor.belongsTo(models.Usuario, { foreignKey: 'id_usuario' });
+
+  // Admin revisor de solicitudes
+  models.Usuario.hasMany(models.SolicitudProfesor, { foreignKey: 'id_admin_revisor' });
+  models.SolicitudProfesor.belongsTo(models.Usuario, { foreignKey: 'id_admin_revisor' });
 
   return models;
 }
