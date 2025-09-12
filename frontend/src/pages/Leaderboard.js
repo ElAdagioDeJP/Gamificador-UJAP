@@ -21,7 +21,14 @@ const Leaderboard = () => {
     setLoading(true)
     try {
       const data = await gameService.getLeaderboard()
-      setLeaderboard(data)
+      // Filtrar solo estudiantes (en caso de que el backend no lo haga)
+      const studentsOnly = data.filter(player => 
+        !player.role || 
+        player.role === 'estudiante' || 
+        player.role === 'user' || 
+        player.role === 'student'
+      )
+      setLeaderboard(studentsOnly)
     } catch (error) {
       console.error("Error loading leaderboard:", error)
     } finally {
@@ -59,13 +66,20 @@ const Leaderboard = () => {
     }
   }
 
-  const currentUserRank = leaderboard.findIndex((player) => player.name === user?.name) + 1
+  // Solo mostrar la posición del usuario si es estudiante
+  const isStudent = user?.rol === 'estudiante' || user?.rol === 'user' || user?.rol === 'student' || !user?.rol
+  const currentUserRank = isStudent ? leaderboard.findIndex((player) => player.name === user?.name) + 1 : 0
 
   return (
     <div className="leaderboard">
       <div className="leaderboard-header">
         <h1>🏆 Clasificación Global</h1>
         <p>Compite con estudiantes de todo el mundo</p>
+        {!isStudent && (
+          <div className="admin-notice">
+            <p>ℹ️ Esta clasificación es solo para estudiantes. Los profesores y administradores no participan en el ranking.</p>
+          </div>
+        )}
       </div>
 
       <div className="leaderboard-filters">
@@ -93,7 +107,7 @@ const Leaderboard = () => {
           <div className="leaderboard-list">
             {leaderboard.map((player, index) => {
               const position = index + 1
-              const isCurrentUser = player.name === user?.name
+              const isCurrentUser = isStudent && player.name === user?.name
 
               return (
                 <div
@@ -135,7 +149,7 @@ const Leaderboard = () => {
           </div>
         </Card>
 
-        {currentUserRank > 5 && (
+        {isStudent && currentUserRank > 5 && (
           <Card className="current-user-rank">
             <div className="current-rank-header">
               <h3>Tu Posición Actual</h3>

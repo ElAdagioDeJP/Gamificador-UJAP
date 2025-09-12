@@ -6,6 +6,7 @@ exports.getLeaderboard = async (req, res, next) => {
     const [rows] = await sequelize.query(
       `SELECT id_usuario, nombre_completo, puntos_actuales, nivel, avatar_url
          FROM Usuarios
+        WHERE rol = 'estudiante' OR rol = 'user' OR rol IS NULL
         ORDER BY puntos_actuales DESC, nivel DESC
         LIMIT :limit`,
       { replacements: { limit } }

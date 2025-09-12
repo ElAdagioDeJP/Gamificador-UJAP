@@ -19,6 +19,22 @@
   border-radius: 8px;
 }
 
+.admin-notice {
+  margin-top: 15px;
+  padding: 12px 20px;
+  background: var(--pixel-blue-light);
+  border: 2px solid var(--pixel-blue);
+  border-radius: 8px;
+  box-shadow: var(--pixel-shadow-sm);
+}
+
+.admin-notice p {
+  margin: 0;
+  color: var(--pixel-blue-dark);
+  font-weight: 600;
+  font-size: 0.8rem;
+}
+
 /* Fondo pixel art para leaderboard header */
 .leaderboard-header::before {
   content: "";
