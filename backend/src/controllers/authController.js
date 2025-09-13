@@ -1,7 +1,8 @@
 const jwt = require('jsonwebtoken');
 const { validationResult } = require('express-validator');
 const { Op } = require('sequelize');
-const { Usuario } = require('../../models');
+const bcrypt = require('bcryptjs');
+const { Usuario, sequelize } = require('../../models');
 
 function signToken(user) {
   return jwt.sign({ id: user.id_usuario, rol: user.rol || 'estudiante' }, process.env.JWT_SECRET, {
@@ -100,7 +101,36 @@ exports.login = async (req, res, next) => {
 
     const { email, password } = req.body;
 
-    const user = await Usuario.findOne({ where: { email_institucional: email } });
+    let user;
+    try {
+      user = await Usuario.findOne({ where: { email_institucional: email } });
+    } catch (err) {
+      // Fallback when DB schema is not yet updated (missing columna tema)
+      if (err && err.name === 'SequelizeDatabaseError' && err.parent && err.parent.code === 'ER_BAD_FIELD_ERROR') {
+        // Select safe columns (exclude tema) and validate password manually
+        const q = `SELECT id_usuario, nombre_usuario, nombre_completo, email_institucional, sexo, avatar_url, contrasena_hash, rol, puntos_actuales, experiencia_total, nivel, racha_dias_consecutivos, fecha_ultima_actividad, estado_verificacion, universidad, carrera, fecha_creacion FROM usuarios WHERE email_institucional = ? LIMIT 1`;
+        const rows = await sequelize.query(q, { replacements: [email], type: sequelize.QueryTypes.SELECT });
+        if (!rows || rows.length === 0) {
+          const e = new Error('Invalid credentials');
+          e.status = 401;
+          throw e;
+        }
+        const row = rows[0];
+        const ok = await bcrypt.compare(password, row.contrasena_hash);
+        if (!ok) {
+          const e = new Error('Invalid credentials');
+          e.status = 401;
+          throw e;
+        }
+        // Build response similar to previous flow
+        const token = signToken({ id_usuario: row.id_usuario, rol: row.rol });
+        // Remove sensitive fields
+        delete row.contrasena_hash;
+        return res.json({ success: true, data: { user: row, token } });
+      }
+      throw err;
+    }
+
     if (!user) {
       const err = new Error('Invalid credentials');
       err.status = 401;
@@ -146,13 +176,28 @@ exports.login = async (req, res, next) => {
 
 exports.me = async (req, res, next) => {
   try {
-    const user = await Usuario.findByPk(req.user.id);
-    if (!user) {
-      const err = new Error('User not found');
-      err.status = 404;
+    try {
+      const user = await Usuario.findByPk(req.user.id);
+      if (!user) {
+        const err = new Error('User not found');
+        err.status = 404;
+        throw err;
+      }
+      return res.json({ success: true, data: { user: user.toSafeJSON() } });
+    } catch (err) {
+      if (err && err.name === 'SequelizeDatabaseError' && err.parent && err.parent.code === 'ER_BAD_FIELD_ERROR') {
+        // Fallback raw select excluding tema
+        const q = `SELECT id_usuario, nombre_usuario, nombre_completo, email_institucional, sexo, avatar_url, rol, puntos_actuales, experiencia_total, nivel, racha_dias_consecutivos, fecha_ultima_actividad, estado_verificacion, universidad, carrera, fecha_creacion FROM usuarios WHERE id_usuario = ? LIMIT 1`;
+        const rows = await sequelize.query(q, { replacements: [req.user.id], type: sequelize.QueryTypes.SELECT });
+        if (!rows || rows.length === 0) {
+          const e = new Error('User not found');
+          e.status = 404;
+          throw e;
+        }
+        return res.json({ success: true, data: { user: rows[0] } });
+      }
       throw err;
     }
-    res.json({ success: true, data: { user: user.toSafeJSON() } });
   } catch (e) {
     next(e);
   }

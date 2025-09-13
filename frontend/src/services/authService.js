@@ -60,7 +60,8 @@ export const authService = {
       name: data.user.nombre_completo,
       avatar: data.user.avatar_url || "/placeholder.svg?height=100&width=100",
       university: data.user.universidad || payload.university,
-      career: data.user.carrera || payload.carrera,
+      career: data.user.carrera || payload.career,
+      theme: data.user.tema || payload.tema || 'claro',
       rol: (data.user.rol === 'user' ? 'estudiante' : data.user.rol) || userData.rol || 'estudiante',
     }
     return { user, token: data.token }
@@ -77,6 +78,7 @@ export const authService = {
       avatar: data.user.avatar_url || "/placeholder.svg?height=100&width=100",
       university: data.user.universidad || "",
       career: data.user.carrera || "",
+      theme: data.user.tema || 'claro',
       rol: (data.user.rol === 'user' ? 'estudiante' : data.user.rol) || 'estudiante',
     }
   },

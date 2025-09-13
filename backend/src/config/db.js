@@ -39,6 +39,16 @@ async function ensureSchema() {
     if (!cols.has('estado_verificacion')) {
       alters.push("ADD COLUMN estado_verificacion ENUM('PENDIENTE', 'VERIFICADO', 'RECHAZADO') NOT NULL DEFAULT 'VERIFICADO' AFTER rol");
     }
+    // Add academic fields if missing
+    if (!cols.has('universidad')) {
+      alters.push("ADD COLUMN universidad VARCHAR(255) NULL AFTER estado_verificacion");
+    }
+    if (!cols.has('carrera')) {
+      alters.push("ADD COLUMN carrera VARCHAR(255) NULL AFTER universidad");
+    }
+    if (!cols.has('tema')) {
+      alters.push("ADD COLUMN tema VARCHAR(100) NULL DEFAULT 'claro' AFTER carrera");
+    }
     
     if (alters.length) {
       await qi.sequelize.query(`ALTER TABLE usuarios ${alters.join(', ')}`);
@@ -47,6 +57,13 @@ async function ensureSchema() {
       await qi.sequelize.query(
         "UPDATE usuarios SET avatar_url = CASE sexo WHEN 'M' THEN '/static/avatars/male.svg' WHEN 'F' THEN '/static/avatars/female.svg' ELSE avatar_url END WHERE avatar_url IS NULL"
       );
+
+      // Ensure tema has a sensible default when newly added
+      try {
+        await qi.sequelize.query("UPDATE usuarios SET tema = 'claro' WHERE tema IS NULL OR tema = ''");
+      } catch (e) {
+        // Ignore if column not present yet in some weird race
+      }
       
       console.log('✅ Schema actualizado: Columnas añadidas ->', alters.map(a => a.split(' ')[2] || a).join(', '));
     } else {
