@@ -79,4 +79,11 @@ export const adminService = {
     const response = await api.delete(`/admin/subjects/${subjectId}`);
     return response.data;
   }
+  ,
+
+  // Obtener estadísticas generales del sistema
+  getSystemStatistics: async () => {
+    const response = await api.get('/admin/system/statistics');
+    return response.data;
+  }
 };

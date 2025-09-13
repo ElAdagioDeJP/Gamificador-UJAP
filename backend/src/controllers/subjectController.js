@@ -106,6 +106,7 @@ exports.getTeacherSubjects = async (req, res, next) => {
 
     const subjectIds = subjects.map(s => s.id_materia);
     let assignmentsBySubject = {};
+    let studentsBySubject = {};
     if (subjectIds.length) {
       const [assignments] = await sequelize.query(
         `SELECT id_mision, titulo, descripcion, puntos_recompensa, experiencia_recompensa, peso_en_calificacion, dificultad, id_materia_asociada
@@ -117,12 +118,27 @@ exports.getTeacherSubjects = async (req, res, next) => {
         acc[a.id_materia_asociada].push({ id: a.id_mision, title: a.titulo, description: a.descripcion, points: a.puntos_recompensa || 0, exp: a.experiencia_recompensa || 0, weight: Number(a.peso_en_calificacion) || 0, difficulty: (a.dificultad || 'BASICA').toLowerCase() });
         return acc;
       }, {});
+
+      // Load enrolled students per subject so teachers can see who's inscribed
+      const [students] = await sequelize.query(
+        `SELECT i.id_materia, u.id_usuario, u.nombre_completo, u.email_institucional, u.avatar_url
+           FROM Inscripciones i
+           JOIN Usuarios u ON u.id_usuario = i.id_usuario
+          WHERE i.id_materia IN (:ids) AND u.rol = 'estudiante'
+          ORDER BY u.nombre_completo`, { replacements: { ids: subjectIds } }
+      );
+      studentsBySubject = students.reduce((acc, s) => {
+        acc[s.id_materia] = acc[s.id_materia] || [];
+        acc[s.id_materia].push({ id: s.id_usuario, name: s.nombre_completo, email: s.email_institucional, avatar: s.avatar_url || null });
+        return acc;
+      }, {});
     }
 
     const data = subjects.map(s => ({
       id: s.id_materia,
       name: s.nombre_materia,
       assignments: assignmentsBySubject[s.id_materia] || [],
+      enrolledStudents: studentsBySubject[s.id_materia] || [],
     }));
 
     res.json({ success: true, data });
@@ -174,14 +190,17 @@ exports.getSubjectById = async (req, res, next) => {
 exports.createSubject = async (req, res, next) => {
   const { codigo_materia, nombre_materia, descripcion, creditos = 3, semestre_recomendado = null, activa = true } = req.body;
   try {
-    const [[result]] = await sequelize.query(
+    // Run the INSERT as a single statement. Some MySQL configs disallow multiple statements
+    // in one query call, so we perform the INSERT first and then retrieve the last insert id
+    // with a separate query.
+    await sequelize.query(
       `INSERT INTO Materias (codigo_materia, nombre_materia, descripcion, creditos, semestre_recomendado, activa, fecha_creacion)
-         VALUES (:codigo, :nombre, :desc, :creditos, :semestre, :activa, NOW());
-         SELECT LAST_INSERT_ID() AS id;`,
+         VALUES (:codigo, :nombre, :desc, :creditos, :semestre, :activa, NOW())`,
       { replacements: { codigo: codigo_materia, nombre: nombre_materia, desc: descripcion, creditos, semestre: semestre_recomendado, activa } }
     );
 
-    const newId = result && (result.id || result[0]?.id) ? (result.id || result[0].id) : null;
+    const [[last]] = await sequelize.query(`SELECT LAST_INSERT_ID() AS id`);
+    const newId = last && last.id ? last.id : null;
     res.status(201).json({ success: true, id: newId });
   } catch (e) { next(e); }
 };

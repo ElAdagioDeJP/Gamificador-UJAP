@@ -2,18 +2,13 @@ const { sequelize } = require('../../models');
 
 exports.listStudents = async (req, res, next) => {
   try {
-    // Students enrolled in any subject coordinated by the teacher
-    const teacherId = req.user.id;
+    // Return all students in the system (role = 'estudiante') so teachers can assign any student to their subjects
     const [rows] = await sequelize.query(
-      `SELECT DISTINCT u.id_usuario, u.nombre_completo, u.email_institucional, u.nivel, u.puntos_actuales,
+      `SELECT u.id_usuario, u.nombre_completo, u.email_institucional, u.nivel, u.puntos_actuales,
               u.racha_dias_consecutivos, u.fecha_ultima_actividad, u.avatar_url
          FROM Usuarios u
-         JOIN Inscripciones i ON i.id_usuario = u.id_usuario
-         JOIN Profesor_Materias pm ON pm.id_materia = i.id_materia
-        WHERE pm.id_profesor = :teacherId
-          AND u.rol = 'estudiante'`,
-      { replacements: { teacherId } }
-    );
+        WHERE u.rol = 'estudiante'
+        ORDER BY u.nombre_completo`);
 
     const data = rows.map((u) => ({
       id: u.id_usuario,
@@ -112,5 +107,38 @@ exports.getStats = async (req, res, next) => {
 
     const averageGrade = 85; // placeholder metric
     res.json({ success: true, data: { totalStudents: Number(counts.totalStudents) || 0, activeStudents: Number(counts.totalStudents) || 0, totalAssignments: Number(counts.totalAssignments) || 0, pendingSubmissions: Number(counts.pendingSubmissions) || 0, averageGrade } });
+  } catch (e) { next(e); }
+};
+
+// Teacher: enroll a student into a subject the teacher coordinates
+exports.enrollStudent = async (req, res, next) => {
+  try {
+    const teacherId = req.user.id;
+    const subjectId = Number(req.params.subjectId);
+    const { studentId } = req.body;
+    // Verify teacher coordinates the subject
+    const [[coord]] = await sequelize.query(`SELECT id_materia FROM Profesor_Materias WHERE id_materia = :s AND id_profesor = :t`, { replacements: { s: subjectId, t: teacherId } });
+    if (!coord) return res.status(403).json({ success: false, message: 'No autorizado para esta materia' });
+    // Upsert into Inscripciones (use current year-month as periodo and 'ACTIVA' state)
+    await sequelize.query(
+      `INSERT INTO Inscripciones (id_usuario, id_materia, periodo_academico, estado, fecha_inscripcion)
+       VALUES (:u, :m, DATE_FORMAT(CURDATE(), '%Y-%m'), 'ACTIVA', NOW())
+       ON DUPLICATE KEY UPDATE estado = 'ACTIVA', fecha_inscripcion = NOW()`,
+      { replacements: { u: studentId, m: subjectId } }
+    );
+    res.json({ success: true, data: { studentId: Number(studentId), subjectId } });
+  } catch (e) { next(e); }
+};
+
+// Teacher: unenroll a student from a subject
+exports.unenrollStudent = async (req, res, next) => {
+  try {
+    const teacherId = req.user.id;
+    const subjectId = Number(req.params.subjectId);
+    const studentId = Number(req.params.studentId);
+    const [[coord]] = await sequelize.query(`SELECT id_materia FROM Profesor_Materias WHERE id_materia = :s AND id_profesor = :t`, { replacements: { s: subjectId, t: teacherId } });
+    if (!coord) return res.status(403).json({ success: false, message: 'No autorizado para esta materia' });
+    await sequelize.query(`DELETE FROM Inscripciones WHERE id_usuario = :u AND id_materia = :m`, { replacements: { u: studentId, m: subjectId } });
+    res.json({ success: true, data: { studentId, subjectId, removed: true } });
   } catch (e) { next(e); }
 };

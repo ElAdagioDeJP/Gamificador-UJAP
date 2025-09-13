@@ -24,6 +24,9 @@ router.post('/subjects', subjectController.createSubject);
 router.put('/subjects/:id', subjectController.updateSubject);
 router.delete('/subjects/:id', subjectController.deleteSubject);
 
+// Estadísticas generales del sistema
+router.get('/system/statistics', adminController.getSystemStatistics);
+
 // Asignaciones
 router.post('/subjects/:id/professors', subjectController.assignProfessorsToSubject);
 router.post('/professors/:id/subjects', subjectController.assignSubjectsToProfessor);

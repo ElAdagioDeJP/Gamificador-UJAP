@@ -28,26 +28,28 @@ exports.createMission = async (req, res, next) => {
       }
     }
 
-    const [[mission]] = await sequelize.query(
-      `INSERT INTO Misiones (titulo, descripcion, tipo_mision, puntos_recompensa, dificultad, id_profesor_creador, id_materia_asociada)
-       VALUES (:titulo, :descripcion, :tipo, :puntos, :dificultad, :prof, :materia)
-       RETURNING id_mision, titulo`,
-      { replacements: { titulo: title, descripcion: description || '', tipo: type === 'DIARIA' ? 'DIARIA' : 'TAREA', puntos: points, dificultad: mapDifficultyClientToDB(difficulty), prof: teacherId, materia: subjectId } }
-    ).catch(async (e) => {
-      // MySQL fallback without RETURNING
-      if (e && e.original && e.original.code === 'ER_PARSE_ERROR') throw e;
-      // For MySQL, run separate select LAST_INSERT_ID
-      if (/sqlite|mysql/i.test(sequelize.getDialect())) {
-        await sequelize.query(
-          `INSERT INTO Misiones (titulo, descripcion, tipo_mision, puntos_recompensa, dificultad, id_profesor_creador, id_materia_asociada)
-           VALUES (:titulo, :descripcion, :tipo, :puntos, :dificultad, :prof, :materia)`,
-          { replacements: { titulo: title, descripcion: description || '', tipo: type === 'DIARIA' ? 'DIARIA' : 'TAREA', puntos: points, dificultad: mapDifficultyClientToDB(difficulty), prof: teacherId, materia: subjectId } }
-        );
-        const [[row]] = await sequelize.query('SELECT LAST_INSERT_ID() AS id_mision');
-        return [{ id_mision: row.id_mision, titulo: title }];
-      }
-      throw e;
-    });
+    // Insert mission. Use RETURNING only for Postgres; MySQL/SQLite require INSERT + LAST_INSERT_ID()
+    let mission;
+    const replacements = { titulo: title, descripcion: description || '', tipo: type === 'DIARIA' ? 'DIARIA' : 'TAREA', puntos: points, dificultad: mapDifficultyClientToDB(difficulty), prof: teacherId, materia: subjectId };
+    const dialect = sequelize.getDialect();
+    if (/postgres|pg/i.test(dialect)) {
+      const [[m]] = await sequelize.query(
+        `INSERT INTO Misiones (titulo, descripcion, tipo_mision, puntos_recompensa, dificultad, id_profesor_creador, id_materia_asociada)
+         VALUES (:titulo, :descripcion, :tipo, :puntos, :dificultad, :prof, :materia)
+         RETURNING id_mision, titulo`,
+        { replacements }
+      );
+      mission = m;
+    } else {
+      // MySQL/SQLite path: simple insert then read last insert id
+      await sequelize.query(
+        `INSERT INTO Misiones (titulo, descripcion, tipo_mision, puntos_recompensa, dificultad, id_profesor_creador, id_materia_asociada)
+         VALUES (:titulo, :descripcion, :tipo, :puntos, :dificultad, :prof, :materia)`,
+        { replacements }
+      );
+      const [[row]] = await sequelize.query('SELECT LAST_INSERT_ID() AS id_mision');
+      mission = { id_mision: row.id_mision, titulo: title };
+    }
 
     if (type === 'DIARIA') {
       // Persist questions & options in custom tables (create if not exist)
@@ -73,6 +75,22 @@ exports.createMission = async (req, res, next) => {
       }
     }
 
+    // If the mission is a normal (TAREA) and teacher assigned specific students, create assignment records
+    const assigned = Array.isArray(req.body.assignedStudentIds) ? req.body.assignedStudentIds.map(Number).filter(Boolean) : [];
+    if (assigned.length && (type !== 'DIARIA')) {
+      await sequelize.transaction(async (t) => {
+        // Build values list safely
+        const values = assigned.map(id => `(${id}, ${mission.id_mision}, 'ASIGNADA')`).join(',');
+        // Insert entries; if already exists, set state to ASIGNADA
+        await sequelize.query(
+          `INSERT INTO Usuario_Misiones (id_usuario, id_mision, estado)
+           VALUES ${values}
+           ON DUPLICATE KEY UPDATE estado = 'ASIGNADA'`,
+          { transaction: t }
+        );
+      });
+    }
+
     res.status(201).json({ success: true, data: { id: mission.id_mision, title } });
   } catch (e) { next(e); }
 };
@@ -88,6 +106,44 @@ exports.listMissions = async (req, res, next) => {
         WHERE id_profesor_creador = :prof AND tipo_mision = :tipo
         ORDER BY id_mision DESC`, { replacements: { prof: teacherId, tipo } });
     res.json({ success: true, data: rows.map(r => ({ id: r.id_mision, title: r.titulo, description: r.descripcion, type: r.tipo_mision, points: r.puntos_recompensa || 0, difficulty: r.dificultad, createdAt: r.created_at })) });
+  } catch (e) { next(e); }
+};
+
+// Update a mission (teacher only)
+exports.updateMission = async (req, res, next) => {
+  try {
+    const teacherId = req.user.id;
+    const missionId = Number(req.params.missionId);
+    const { title, description, points, difficulty, subjectId } = req.body;
+
+    // Validate mission belongs to teacher
+    const [[existing]] = await sequelize.query(`SELECT id_mision FROM Misiones WHERE id_mision = :m AND id_profesor_creador = :t`, { replacements: { m: missionId, t: teacherId } });
+    if (!existing) return res.status(404).json({ success: false, message: 'Misión no encontrada o sin permiso' });
+
+    const updates = [];
+    const replacements = { m: missionId };
+    if (title !== undefined) { updates.push(`titulo = :titulo`); replacements.titulo = title; }
+    if (description !== undefined) { updates.push(`descripcion = :descripcion`); replacements.descripcion = description; }
+    if (points !== undefined) { updates.push(`puntos_recompensa = :puntos`); replacements.puntos = points; }
+    if (difficulty !== undefined) { updates.push(`dificultad = :dificultad`); replacements.dificultad = difficulty; }
+    if (subjectId !== undefined) { updates.push(`id_materia_asociada = :materia`); replacements.materia = subjectId; }
+
+    if (!updates.length) return res.status(400).json({ success: false, message: 'Nada para actualizar' });
+
+    await sequelize.query(`UPDATE Misiones SET ${updates.join(', ')} WHERE id_mision = :m`, { replacements });
+    res.json({ success: true, data: { id: missionId } });
+  } catch (e) { next(e); }
+};
+
+// Delete a mission (teacher only)
+exports.deleteMission = async (req, res, next) => {
+  try {
+    const teacherId = req.user.id;
+    const missionId = Number(req.params.missionId);
+    const [[existing]] = await sequelize.query(`SELECT id_mision FROM Misiones WHERE id_mision = :m AND id_profesor_creador = :t`, { replacements: { m: missionId, t: teacherId } });
+    if (!existing) return res.status(404).json({ success: false, message: 'Misión no encontrada o sin permiso' });
+    await sequelize.query(`DELETE FROM Misiones WHERE id_mision = :m`, { replacements: { m: missionId } });
+    res.json({ success: true, data: { id: missionId, deleted: true } });
   } catch (e) { next(e); }
 };
 

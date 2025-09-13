@@ -24,15 +24,29 @@ const AdminDashboard = () => {
       setLoading(true);
       const response = await adminService.getAllProfessors({ status: 'all', limit: 1 });
       const stats = response.data.statistics;
-      
-      setStatistics({
+      // Basic professor statistics
+      const baseStats = {
         totalProfessors: stats.total || 0,
         pendingProfessors: stats.pendientes || 0,
         approvedProfessors: stats.verificados || 0,
         rejectedProfessors: stats.rechazados || 0,
-        totalSubjects: 0, // TODO: Implementar cuando esté disponible
-        totalStudents: 0  // TODO: Implementar cuando esté disponible
-      });
+        totalSubjects: 0,
+        totalStudents: 0
+      };
+
+      // Fetch system-wide totals (subjects, students, professors)
+      try {
+        const sys = await adminService.getSystemStatistics();
+        const sysData = sys.data || {};
+        baseStats.totalSubjects = sysData.totalSubjects || 0;
+        baseStats.totalStudents = sysData.totalStudents || 0;
+        // totalProfessors already present from professors endpoint; prefer system count if available
+        baseStats.totalProfessors = sysData.totalProfessors || baseStats.totalProfessors;
+      } catch (err) {
+        console.warn('Could not fetch system statistics:', err);
+      }
+
+      setStatistics(baseStats);
     } catch (error) {
       console.error('Error fetching statistics:', error);
       setError('Error al cargar las estadísticas');

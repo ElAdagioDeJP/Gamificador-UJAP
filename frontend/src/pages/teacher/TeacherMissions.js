@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import Card from '../../components/common/Card';
 import Button from '../../components/common/Button';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
@@ -12,17 +12,25 @@ export default function TeacherMissions() {
   const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({ title: '', description: '', points: 50, difficulty: 'medium' });
   const [questions, setQuestions] = useState([emptyQuestion(), emptyQuestion(), emptyQuestion(), emptyQuestion()]);
+  const [students, setStudents] = useState([]);
+  const [selectedStudents, setSelectedStudents] = useState([]);
 
-  useEffect(() => { load(); }, [type]);
-
-  async function load() {
+  const load = useCallback(async () => {
     setLoading(true);
     try {
       const data = await teacherService.listMissions(type === 'DIARIA' ? 'DIARIA' : 'NORMAL');
       setMissions(data);
     } catch (e) { console.error(e); }
     setLoading(false);
-  }
+  }, [type]);
+
+  useEffect(() => { load(); }, [load]);
+
+  useEffect(() => {
+    (async () => {
+      try { setStudents(await teacherService.getStudents()); } catch (e) { console.error('No se pudieron cargar estudiantes', e); }
+    })();
+  }, []);
 
   function updateQuestion(idx, patch) {
     setQuestions(qs => qs.map((q,i)=> i===idx ? { ...q, ...patch } : q));
@@ -46,9 +54,11 @@ export default function TeacherMissions() {
         options: q.options.filter(o=>o.text.trim())
       }));
     }
+    if (type !== 'DIARIA' && selectedStudents.length) payload.assignedStudentIds = selectedStudents;
     try {
       await teacherService.createMission(payload);
       setForm({ title: '', description: '', points: 50, difficulty: 'medium' });
+      setSelectedStudents([]);
       if (type === 'DIARIA') setQuestions([emptyQuestion(), emptyQuestion(), emptyQuestion(), emptyQuestion()]);
       load();
       alert('Misión creada');
@@ -76,6 +86,22 @@ export default function TeacherMissions() {
           </select>
         </div>
         <textarea placeholder='Descripción' value={form.description} onChange={e=> setForm(f=> ({ ...f, description: e.target.value }))} style={{ width: '100%', marginTop: '0.5rem' }} rows={3} />
+        {type !== 'DIARIA' && (
+          <div style={{ marginTop: 8 }}>
+            <h4>Asignar a estudiantes (opcional)</h4>
+            <div style={{ maxHeight: 160, overflow: 'auto', border: '1px solid #e6e6e6', padding: 8 }}>
+              {students.map(s => (
+                <label key={s.id} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                  <input type='checkbox' checked={selectedStudents.includes(s.id)} onChange={(e) => {
+                    if (e.target.checked) setSelectedStudents(prev => [...prev, s.id]);
+                    else setSelectedStudents(prev => prev.filter(x => x !== s.id));
+                  }} />
+                  <span>{s.name} <small style={{ color: '#666' }}>{s.email}</small></span>
+                </label>
+              ))}
+            </div>
+          </div>
+        )}
         {type === 'DIARIA' && (
           <div style={{ marginTop: '1rem' }}>
             <h4>Preguntas (4-5)</h4>
