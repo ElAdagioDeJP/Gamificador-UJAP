@@ -6,6 +6,7 @@ import LoadingSpinner from "../components/common/LoadingSpinner"
 import socket from "../services/socketService"
 import { useState, useEffect, useRef } from "react"
 import { playSound } from "../utils/duelSounds"
+import AvatarPixel from "../components/common/AvatarPixel";
 import "../styles/Duels.css"
 import "../styles/DuelModal.css"
 
@@ -18,6 +19,7 @@ const Duels = () => {
   const [answerResult, setAnswerResult] = useState(null);
   const [timer, setTimer] = useState(10);
   const timerRef = useRef();
+  const selectedOptionRef = useRef(null);
   const [duelRoomId, setDuelRoomId] = useState(null);
   const [duelOpponent, setDuelOpponent] = useState("");
   const [duelScores, setDuelScores] = useState({});
@@ -31,43 +33,40 @@ const Duels = () => {
   // Temporizador para cada pregunta
   useEffect(() => {
     if (!duelModalOpen || !duelQuestions[currentQuestion]) return;
-    setTimer(10);
+    // Solo reiniciar el timer cuando llega una nueva pregunta o se abre el modal
+    if (selectedOptionRef.current === null) {
+      setTimer(10);
+    }
     let questionAdvanced = false;
     timerRef.current = setInterval(() => {
       setTimer((prev) => {
         if (prev <= 1 && !questionAdvanced) {
           questionAdvanced = true;
           clearInterval(timerRef.current);
-          if (!selectedOption) {
+          if (!selectedOptionRef.current) {
+            // Timeout: enviar respuesta nula para que el backend cuente como incorrecta
             setSelectedOption("timeout");
-            setTimeout(() => {
-              setSelectedOption(null);
-              setCurrentQuestion((prev) => prev + 1);
-              setTimer(10);
-            }, 1200);
+            try {
+              const q = duelQuestions[currentQuestion];
+              socket.emit("submit_answer", { duelId: duelRoomId, questionId: q.id, answerId: null });
+            } catch {}
+            // No avanzamos aquí; esperamos a answer_result para decidir
           } else {
-            // Si ya hay respuesta seleccionada, avanzar igual
-            setTimeout(() => {
-              setSelectedOption(null);
-              setAnswerResult(null);
-              setCurrentQuestion((prev) => prev + 1);
-              setTimer(10);
-            }, 1200);
+            // Ya respondió: no avanzar aquí; esperar answer_result
           }
         }
         return prev - 1;
       });
     }, 1000);
     return () => clearInterval(timerRef.current);
-  }, [duelModalOpen, currentQuestion, duelQuestions]);
+  }, [duelModalOpen, currentQuestion, duelQuestions, duelRoomId]);
 
-  if (loading) {
-    return <LoadingSpinner />
-  }
+  // Mantener en un ref la opción seleccionada localmente para usarla en listeners sin re-render
+  useEffect(() => {
+    selectedOptionRef.current = selectedOption;
+  }, [selectedOption]);
 
-  const { duels } = gameData
-  const activeDuels = duels.filter((duel) => duel.status === "active")
-  const completedDuels = duels.filter((duel) => duel.status === "completed")
+  // Este efecto maneja los listeners de socket (debe declararse antes de cualquier return condicional)
 
   const getStatusColor = (status, result) => {
     if (status === "active") return "#3b82f6"
@@ -96,8 +95,9 @@ const Duels = () => {
     setWaitingForOpponent(true);
   }
 
-  // Escuchar emparejamiento y preguntas
-    socket.off("duel_found").on("duel_found", (data) => {
+  // Gestionar listeners de sockets con cleanup para evitar duplicados
+  useEffect(() => {
+    const onDuelFound = (data) => {
   // Ya no se reproduce ni se detiene música de espera
       setDuelRoomId(data.duelId);
       // Determinar el nombre del oponente (excluyendo el propio socket.id)
@@ -116,7 +116,92 @@ const Duels = () => {
       setDuelScores(data.scores);
       setWaitingForOpponent(false);
       setDuelModalOpen(true);
-    })
+    };
+
+    const onAnswerResult = (data) => {
+      setDuelScores(data.scores);
+      setAnswerResult(data.correctAnswerId);
+      clearInterval(timerRef.current);
+      // Sonidos solo en el cliente que respondió esta pregunta
+      if (data.answeringPlayerId === socket.id) {
+        const mySelection = selectedOptionRef.current;
+        const iAnswered = mySelection !== null && mySelection !== "timeout";
+        if (iAnswered) {
+          if (data.isCorrect) {
+            playSound("correct");
+          } else {
+            playSound("wrong");
+          }
+        }
+      }
+      setTimeout(() => {
+        setSelectedOption(null);
+        setAnswerResult(null);
+        if (data.shouldAdvance) {
+          setCurrentQuestion((prev) => prev + 1);
+          setTimer(10);
+        } else {
+          // No avanzar aún: el otro jugador todavía puede responder
+          setTimer((t) => (t > 2 ? t : 3));
+        }
+      }, 1200);
+    };
+
+    const onDuelEnd = (data) => {
+      const playerNames = data.playerNames || {};
+      let scoresArr = [];
+      if (data.finalScores && playerNames) {
+        scoresArr = Object.entries(data.finalScores)
+          .map(([id, score]) => ({ name: playerNames[id] || playerNames[id]?.nombre_usuario || playerNames[id]?.nombre || id, score }));
+      } else {
+        scoresArr = Object.entries(data.finalScores || {}).map(([id, score]) => ({ name: id, score }));
+      }
+      let empate = false;
+      if (scoresArr.length === 2 && scoresArr[0].score === scoresArr[1].score) {
+        empate = true;
+      }
+      if (empate) {
+        playSound("lose");
+      } else if (data.winnerId === socket.id) {
+        playSound("win");
+      } else {
+        playSound("lose");
+      }
+      const winnerName = empate ? 'Empate' : (playerNames[data.winnerId] || duelOpponent || 'Desconocido');
+      setDuelResultModal({ winnerName, scoresArr });
+      setDuelModalOpen(false);
+      setWaitingForOpponent(false);
+      setDuelQuestions([]);
+      setCurrentQuestion(0);
+      setSelectedOption(null);
+      setDuelScores({});
+      setDuelRoomId(null);
+      setDuelOpponent("");
+      // Refrescar game data tras finalizar (ligero delay para asegurar persistencia)
+      setTimeout(() => {
+        loadGameData();
+      }, 800);
+    };
+
+    socket.off("duel_found", onDuelFound).on("duel_found", onDuelFound);
+    socket.off("answer_result", onAnswerResult).on("answer_result", onAnswerResult);
+    socket.off("duel_end", onDuelEnd).on("duel_end", onDuelEnd);
+
+    return () => {
+      socket.off("duel_found", onDuelFound);
+      socket.off("answer_result", onAnswerResult);
+      socket.off("duel_end", onDuelEnd);
+    };
+  }, [duelOpponent, loadGameData]);
+
+  // Early return por loading: debe ir después de todos los hooks
+  if (loading) {
+    return <LoadingSpinner />
+  }
+
+  const { duels } = gameData
+  const activeDuels = duels.filter((duel) => duel.status === "active")
+  const completedDuels = duels.filter((duel) => duel.status === "completed")
 
   // Enviar respuesta
   const handleAnswer = (optionId) => {
@@ -134,61 +219,7 @@ const Duels = () => {
     })
   }
 
-  // Recibir resultado de respuesta y avanzar pregunta
-  socket.off("answer_result").on("answer_result", (data) => {
-    setDuelScores(data.scores);
-    setAnswerResult(data.correctAnswerId);
-    clearInterval(timerRef.current); // Detener temporizador al recibir respuesta
-    // Sonido según respuesta
-    if (data.correctPlayerId === socket.id) {
-      playSound("correct");
-    } else if (data.correctPlayerId) {
-      playSound("wrong");
-    }
-    setTimeout(() => {
-      setSelectedOption(null);
-      setAnswerResult(null);
-      setCurrentQuestion((prev) => prev + 1);
-      setTimer(10);
-    }, 1200);
-  })
-
-  // Recibir fin de duelo
-  socket.off("duel_end").on("duel_end", (data) => {
-    const playerNames = data.playerNames || {};
-    let scoresArr = [];
-    if (data.finalScores && playerNames) {
-      scoresArr = Object.entries(data.finalScores)
-        .map(([id, score]) => ({ name: playerNames[id] || playerNames[id]?.nombre_usuario || playerNames[id]?.nombre || id, score }));
-    } else {
-      scoresArr = Object.entries(data.finalScores || {}).map(([id, score]) => ({ name: id, score }));
-    }
-    let empate = false;
-    if (scoresArr.length === 2 && scoresArr[0].score === scoresArr[1].score) {
-      empate = true;
-    }
-    if (empate) {
-      playSound("lose");
-    } else if (data.winnerId === socket.id) {
-      playSound("win");
-    } else {
-      playSound("lose");
-    }
-    const winnerName = empate ? 'Empate' : (playerNames[data.winnerId] || duelOpponent || 'Desconocido');
-    setDuelResultModal({ winnerName, scoresArr });
-    setDuelModalOpen(false)
-    setWaitingForOpponent(false)
-    setDuelQuestions([])
-    setCurrentQuestion(0)
-    setSelectedOption(null)
-    setDuelScores({})
-    setDuelRoomId(null)
-    setDuelOpponent("")
-    // Esperar 1 segundo antes de actualizar los datos para asegurar persistencia en BD
-    setTimeout(() => {
-      loadGameData();
-    }, 1000);
-  })
+  
 
   // Modal de preguntas
   const renderDuelModal = () => {
@@ -312,9 +343,11 @@ const Duels = () => {
                 <Card key={duel.id} className="duel-card active">
                   <div className="duel-header">
                     <div className="duel-opponent">
-                      <img
-                        src={`/placeholder.svg?height=50&width=50&query=${duel.opponent.replace(" ", "+")}`}
-                        alt={duel.opponent}
+                      {/* Avatar basado en iniciales o imagen si llega */}
+                      <AvatarPixel
+                        name={duel.opponent}
+                        src={duel.opponentAvatar}
+                        size={50}
                         className="opponent-avatar"
                       />
                       <div className="opponent-info">
@@ -375,9 +408,11 @@ const Duels = () => {
                 <Card key={duel.id} className={`duel-card completed ${duel.result}`}>
                   <div className="duel-header">
                     <div className="duel-opponent">
-                      <img
-                        src={`/placeholder.svg?height=50&width=50&query=${duel.opponent.replace(" ", "+")}`}
-                        alt={duel.opponent}
+                      {/* Avatar basado en iniciales o imagen si llega */}
+                      <AvatarPixel
+                        name={duel.opponent}
+                        src={duel.opponentAvatar}
+                        size={50}
                         className="opponent-avatar"
                       />
                       <div className="opponent-info">
@@ -432,13 +467,10 @@ const Duels = () => {
               ))}
             </ul>
           </div>
-          <Button variant="primary" onClick={() => setDuelResultModal(null)}>
+          <Button variant="primary" onClick={() => { setDuelResultModal(null); loadGameData(); }}>
             Aceptar
           </Button>
-          {/* Actualizar datos al cerrar el modal de resultados */}
-          <script>
-            {setDuelResultModal === null && loadGameData()}
-          </script>
+          {/* Eliminado script inline; refresco explícito al cerrar */}
         </div>
       </div>
     )}

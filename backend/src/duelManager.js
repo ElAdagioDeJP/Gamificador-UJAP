@@ -120,6 +120,7 @@ function setupDuelSocket(io) {
           questions,
           scores: { [player.id]: 0, [opponent.id]: 0 },
           currentQuestionIndex: 0,
+          currentAnswers: new Set(),
           selectedMateria,
         };
         activeDuels.set(duelId, duelRoom);
@@ -147,28 +148,42 @@ function setupDuelSocket(io) {
       if (!duel) return;
       const currentQuestion = duel.questions[duel.currentQuestionIndex];
       if (!currentQuestion || currentQuestion.id !== questionId) return;
+      // Evitar múltiples respuestas del mismo jugador en la misma pregunta
+      if (duel.currentAnswers.has(socket.id)) {
+        return;
+      }
+      duel.currentAnswers.add(socket.id);
       const selectedOption = (currentQuestion.options || []).find((o) => o.id === answerId);
       const correctOption = (currentQuestion.options || []).find((o) => o.isCorrect);
       const isCorrect = !!(selectedOption && selectedOption.isCorrect);
       if (isCorrect) {
         duel.scores[socket.id] = (duel.scores[socket.id] || 0) + 1;
       }
+      // Decidir si avanzar de pregunta: avanzar si alguien acierta o si ambos ya respondieron (aunque ambos fallen)
+      const shouldAdvance = isCorrect || duel.currentAnswers.size >= 2;
       io.to(duel.roomName).emit('answer_result', {
         questionId,
         correctAnswerId: correctOption ? correctOption.id : null,
         correctPlayerId: isCorrect ? socket.id : null,
+        answeringPlayerId: socket.id,
+        isCorrect,
+        shouldAdvance,
         scores: duel.scores,
       });
-      duel.currentQuestionIndex++;
+
+      if (shouldAdvance) {
+        duel.currentAnswers = new Set();
+        duel.currentQuestionIndex++;
+      }
+
       if (duel.currentQuestionIndex >= duel.questions.length) {
-  const ids = Object.keys(duel.scores);
-  const winnerSocketId = ids.reduce((a, b) => (duel.scores[a] > duel.scores[b] ? a : b));
-  const finalScores = duel.scores;
-  // Construir playerNames usando los perfiles
-  const playerNames = {};
-  playerNames[duel.player1.id] = duel.player1.profile?.nombre_usuario || duel.player1.profile?.nombre || duel.player1.profile?.name || 'Jugador 1';
-  playerNames[duel.player2.id] = duel.player2.profile?.nombre_usuario || duel.player2.profile?.nombre || duel.player2.profile?.name || 'Jugador 2';
-  io.to(duel.roomName).emit('duel_end', { winnerId: winnerSocketId, finalScores, playerNames });
+        const ids = Object.keys(duel.scores);
+        const winnerSocketId = ids.reduce((a, b) => (duel.scores[a] > duel.scores[b] ? a : b));
+        const finalScores = duel.scores;
+        // Construir playerNames usando los perfiles
+        const playerNames = {};
+        playerNames[duel.player1.id] = duel.player1.profile?.nombre_usuario || duel.player1.profile?.nombre || duel.player1.profile?.name || 'Jugador 1';
+        playerNames[duel.player2.id] = duel.player2.profile?.nombre_usuario || duel.player2.profile?.nombre || duel.player2.profile?.name || 'Jugador 2';
 
         // Persistir resultados si el duelo existe en BD (cuando duelId es numérico)
         if (!isNaN(Number(duel.duelId))) {
@@ -189,10 +204,27 @@ function setupDuelSocket(io) {
               `UPDATE Duelo_Participantes SET puntuacion_final = :score WHERE id_duelo = :id AND id_usuario = :u2`,
               { replacements: { score: finalScores[duel.player2.id] || 0, id: duel.duelId, u2: p2UserId } }
             );
+            // Otorgar recompensa al ganador: +150 puntos y +150 XP; recalcular nivel (200 XP por nivel)
+            if (winnerUserId && Number(winnerUserId) > 0) {
+              const delta = 150;
+              await sequelize.query(
+                `UPDATE Usuarios 
+                   SET puntos_actuales = puntos_actuales + :delta,
+                       experiencia_total = experiencia_total + :delta,
+                       -- subir a lo sumo +1 nivel por evento; 200 XP por nivel
+                       nivel = LEAST(nivel + 1, FLOOR(experiencia_total / 200) + 1),
+                       fecha_ultima_actividad = CURDATE()
+                 WHERE id_usuario = :winner`,
+                { replacements: { winner: winnerUserId, delta } }
+              );
+            }
           } catch (e) {
             console.error('Error actualizando resultados de duelo en BD:', e);
           }
         }
+
+        // Emitir el fin del duelo después de persistir para evitar carreras
+        io.to(duel.roomName).emit('duel_end', { winnerId: winnerSocketId, finalScores, playerNames });
 
         activeDuels.delete(duel.duelId);
       }

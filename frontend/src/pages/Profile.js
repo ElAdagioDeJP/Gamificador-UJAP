@@ -152,6 +152,15 @@ const Profile = () => {
               <div className="profile-avatar avatar-initials-lg" title={user?.name}>
                 {user?.name?.split(/\s+/).slice(0,2).map(w=>w[0]).join('').toUpperCase() || '?'}
               </div>
+              {/* Badges de universidad y carrera visibles */}
+              <div className="profile-badges">
+                {user?.university ? (
+                  <span className="badge-university">🎓 {user.university}</span>
+                ) : null}
+                {user?.career ? (
+                  <span className="badge-career">📘 {user.career}</span>
+                ) : null}
+              </div>
             </div>
 
             <div className="profile-details">

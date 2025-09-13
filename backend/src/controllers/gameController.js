@@ -60,11 +60,11 @@ exports.getSummary = async (req, res, next) => {
 
     // Duelos del usuario
     const [duels] = await sequelize.query(
-      `SELECT d.id_duelo, d.tipo_duelo, d.id_materia, d.estado, d.id_ganador, dp.id_usuario, dp.puntuacion_final,
-              mat.nombre_materia
-         FROM Duelos d
-         JOIN Duelo_Participantes dp ON dp.id_duelo = d.id_duelo
-         JOIN Materias mat ON mat.id_materia = d.id_materia
+   `SELECT d.id_duelo, d.tipo_duelo, d.id_materia, d.estado, d.id_ganador, dp.id_usuario, dp.puntuacion_final,
+        COALESCE(mat.nombre_materia, 'General') AS nombre_materia
+      FROM Duelos d
+      JOIN Duelo_Participantes dp ON dp.id_duelo = d.id_duelo
+      LEFT JOIN Materias mat ON mat.id_materia = d.id_materia
         WHERE d.id_duelo IN (
                 SELECT id_duelo FROM Duelo_Participantes WHERE id_usuario = :userId
               )
@@ -143,6 +143,8 @@ exports.completeMission = async (req, res, next) => {
           `UPDATE Usuarios
               SET puntos_actuales = puntos_actuales + :puntos,
                   experiencia_total = experiencia_total + :exp,
+                  -- subir a lo sumo +1 nivel por misión; 200 XP por nivel
+                  nivel = LEAST(nivel + 1, FLOOR(experiencia_total / 200) + 1),
                   racha_dias_consecutivos = racha_dias_consecutivos + 1,
                   fecha_ultima_actividad = CURDATE()
             WHERE id_usuario = :userId`,
@@ -153,6 +155,8 @@ exports.completeMission = async (req, res, next) => {
           `UPDATE Usuarios
               SET puntos_actuales = puntos_actuales + :puntos,
                   experiencia_total = experiencia_total + :exp,
+                  -- subir a lo sumo +1 nivel por misión; 200 XP por nivel
+                  nivel = LEAST(nivel + 1, FLOOR(experiencia_total / 200) + 1),
                   fecha_ultima_actividad = CURDATE()
             WHERE id_usuario = :userId`,
           { replacements: { userId, puntos: mission.puntos_recompensa || 0, exp: mission.experiencia_recompensa || 0 }, transaction: t }

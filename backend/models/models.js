@@ -853,8 +853,8 @@ function createModels(sequelize) {
   models.Duelo.belongsTo(models.Materia, { foreignKey: 'id_materia' });
 
   // PreguntaDuelo -> RespuestaDuelo
-  models.PreguntaDuelo.hasMany(models.RespuestaDuelo, { foreignKey: 'id_pregunta' });
-  models.RespuestaDuelo.belongsTo(models.PreguntaDuelo, { foreignKey: 'id_pregunta' });
+  models.PreguntaDuelo.hasMany(models.RespuestaDuelo, { foreignKey: 'id_pregunta', as: 'opciones' });
+  models.RespuestaDuelo.belongsTo(models.PreguntaDuelo, { foreignKey: 'id_pregunta', as: 'pregunta' });
 
   // Materia -> PreguntaDuelo
   models.Materia.hasMany(models.PreguntaDuelo, { foreignKey: 'id_materia' });
