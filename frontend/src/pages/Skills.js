@@ -3,15 +3,36 @@ import Card from "../components/common/Card"
 import Button from "../components/common/Button"
 import LoadingSpinner from "../components/common/LoadingSpinner"
 import "../styles/Skills.css"
+import { useState } from "react"
+import { useNavigate } from "react-router-dom"
 
 const Skills = () => {
-  const { gameData, loading } = useGame()
+  const { gameData, loading, redeemPartial } = useGame()
+  const navigate = useNavigate()
+  const [redeeming, setRedeeming] = useState(false)
+  const [message, setMessage] = useState("")
 
   if (loading) {
     return <LoadingSpinner />
   }
 
-  const { skills } = gameData
+  const { skills, level, points } = gameData
+
+  const canUnlock = level >= 2
+  const canAfford = points >= 1000
+
+  const handleRedeem = async () => {
+    setMessage("")
+    setRedeeming(true)
+    try {
+      const res = await redeemPartial()
+      setMessage(res?.message || "Canje realizado con éxito.")
+    } catch (err) {
+      setMessage(err?.message || "No se pudo realizar el canje.")
+    } finally {
+      setRedeeming(false)
+    }
+  }
 
   const getSkillColor = (level) => {
     if (level >= 10) return "#10b981" // Verde
@@ -74,6 +95,52 @@ const Skills = () => {
       </div>
 
       <div className="skills-content">
+        {/* Canje de Parcial - Habilidad especial */}
+        <div className="skills-category">
+          <h2>Habilidades Especiales</h2>
+          <div className="skills-grid">
+            <Card className="skill-card">
+              <div className="skill-header">
+                <h3>Canje de Parcial</h3>
+                <span className="skill-rank" style={{ backgroundColor: canUnlock ? "#10b981" : "#6b7280" }}>
+                  {canUnlock ? "Disponible" : "Bloqueado"}
+                </span>
+              </div>
+
+              <div className="skill-level">
+                <div className="level-info">
+                  <span className="level-text">Costo: 1000 puntos</span>
+                  <span className="progress-text">Tu saldo: {points}</span>
+                </div>
+                <div className="skill-progress-bar">
+                  <div
+                    className="progress-fill"
+                    style={{
+                      width: `${Math.min(100, Math.round((points / 1000) * 100))}%`,
+                      backgroundColor: canAfford ? "#10b981" : "#6b7280",
+                    }}
+                  ></div>
+                </div>
+              </div>
+
+              <div className="skill-actions">
+                <Button
+                  variant={canUnlock && canAfford ? "primary" : "secondary"}
+                  size="small"
+                  disabled={!canUnlock || !canAfford || redeeming}
+                  onClick={handleRedeem}
+                >
+                  {redeeming ? "Canjeando..." : canUnlock ? (canAfford ? "Canjear 1000 pts" : "Saldo insuficiente") : "Desbloquea al nivel 2"}
+                </Button>
+              </div>
+
+              {message && (
+                <p style={{ marginTop: 8, fontSize: 12, color: message.includes("éxito") ? "#10b981" : "#ef4444" }}>{message}</p>
+              )}
+            </Card>
+          </div>
+        </div>
+
         {skillCategories.map((category) => (
           <div key={category.name} className="skills-category">
             <h2>{category.name}</h2>
@@ -129,7 +196,7 @@ const Skills = () => {
                   Tu habilidad en Química está en nivel básico. Completa más misiones relacionadas para subir de nivel.
                 </p>
               </div>
-              <Button variant="primary" size="small">
+              <Button variant="primary" size="small" onClick={() => navigate('/missions')}>
                 Ver Misiones
               </Button>
             </div>
@@ -149,7 +216,7 @@ const Skills = () => {
                 <h4>Desafía a otros en Matemáticas</h4>
                 <p>Tu nivel en Matemáticas es alto. ¡Participa en duelos para ganar más experiencia!</p>
               </div>
-              <Button variant="primary" size="small">
+              <Button variant="primary" size="small" onClick={() => navigate('/duels')}>
                 Buscar Duelo
               </Button>
             </div>

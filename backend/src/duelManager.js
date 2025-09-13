@@ -204,18 +204,19 @@ function setupDuelSocket(io) {
               `UPDATE Duelo_Participantes SET puntuacion_final = :score WHERE id_duelo = :id AND id_usuario = :u2`,
               { replacements: { score: finalScores[duel.player2.id] || 0, id: duel.duelId, u2: p2UserId } }
             );
-            // Otorgar recompensa al ganador: +150 puntos y +150 XP; recalcular nivel (200 XP por nivel)
+            // Otorgar recompensa al ganador: +150 puntos y +10 XP; recalcular nivel (200 XP por nivel)
             if (winnerUserId && Number(winnerUserId) > 0) {
-              const delta = 150;
+              const pointsDelta = 150;
+              const expDelta = 10;
               await sequelize.query(
                 `UPDATE Usuarios 
-                   SET puntos_actuales = puntos_actuales + :delta,
-                       experiencia_total = experiencia_total + :delta,
+                   SET puntos_actuales = puntos_actuales + :pointsDelta,
+                       experiencia_total = experiencia_total + :expDelta,
                        -- subir a lo sumo +1 nivel por evento; 200 XP por nivel
                        nivel = LEAST(nivel + 1, FLOOR(experiencia_total / 200) + 1),
                        fecha_ultima_actividad = CURDATE()
                  WHERE id_usuario = :winner`,
-                { replacements: { winner: winnerUserId, delta } }
+                { replacements: { winner: winnerUserId, pointsDelta, expDelta } }
               );
             }
           } catch (e) {

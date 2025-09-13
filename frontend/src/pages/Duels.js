@@ -31,6 +31,8 @@ const Duels = () => {
   const { user } = useAuth();
 
   // Temporizador para cada pregunta
+  // Usamos refs para evitar reiniciar el temporizador por cada clic; deps intencionalmente limitadas
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (!duelModalOpen || !duelQuestions[currentQuestion]) return;
     // Solo reiniciar el timer cuando llega una nueva pregunta o se abre el modal
