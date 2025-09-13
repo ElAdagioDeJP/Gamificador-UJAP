@@ -128,3 +128,115 @@ exports.getTeacherSubjects = async (req, res, next) => {
     res.json({ success: true, data });
   } catch (e) { next(e); }
 };
+
+// ---------------------- Admin: CRUD para materias y asignaciones ----------------------
+exports.getAllSubjectsAdmin = async (req, res, next) => {
+  try {
+    const [rows] = await sequelize.query(
+      `SELECT m.id_materia, m.codigo_materia, m.nombre_materia, m.descripcion, m.creditos, m.semestre_recomendado, m.activa,
+              GROUP_CONCAT(pm.id_profesor) AS profesores
+         FROM Materias m
+    LEFT JOIN Profesor_Materias pm ON pm.id_materia = m.id_materia AND pm.activo = 1
+        GROUP BY m.id_materia
+        ORDER BY m.nombre_materia`);
+
+    // Normalize profesores as array of ints
+    const subjects = rows.map(r => ({
+      ...r,
+      profesores_asignados: r.profesores ? r.profesores.split(',').map(v => parseInt(v, 10)) : []
+    }));
+
+    res.json({ success: true, data: subjects });
+  } catch (e) { next(e); }
+};
+
+exports.getSubjectById = async (req, res, next) => {
+  try {
+    const id = parseInt(req.params.id, 10);
+    const [rows] = await sequelize.query(
+      `SELECT m.id_materia, m.codigo_materia, m.nombre_materia, m.descripcion, m.creditos, m.semestre_recomendado, m.activa,
+              GROUP_CONCAT(pm.id_profesor) AS profesores
+         FROM Materias m
+    LEFT JOIN Profesor_Materias pm ON pm.id_materia = m.id_materia AND pm.activo = 1
+        WHERE m.id_materia = :id
+        GROUP BY m.id_materia`, { replacements: { id } });
+
+  const subjectRow = rows?.[0] || null;
+  if (!subjectRow) return res.status(404).json({ success: false, message: 'Materia no encontrada' });
+
+  const profesores_asignados = (subjectRow.profesores ? subjectRow.profesores.split(',').map(v => parseInt(v, 10)) : []);
+  const subject = { ...subjectRow, profesores_asignados };
+
+    res.json({ success: true, data: subject });
+  } catch (e) { next(e); }
+};
+
+exports.createSubject = async (req, res, next) => {
+  const { codigo_materia, nombre_materia, descripcion, creditos = 3, semestre_recomendado = null, activa = true } = req.body;
+  try {
+    const [[result]] = await sequelize.query(
+      `INSERT INTO Materias (codigo_materia, nombre_materia, descripcion, creditos, semestre_recomendado, activa, fecha_creacion)
+         VALUES (:codigo, :nombre, :desc, :creditos, :semestre, :activa, NOW());
+         SELECT LAST_INSERT_ID() AS id;`,
+      { replacements: { codigo: codigo_materia, nombre: nombre_materia, desc: descripcion, creditos, semestre: semestre_recomendado, activa } }
+    );
+
+    const newId = result && (result.id || result[0]?.id) ? (result.id || result[0].id) : null;
+    res.status(201).json({ success: true, id: newId });
+  } catch (e) { next(e); }
+};
+
+exports.updateSubject = async (req, res, next) => {
+  const id = parseInt(req.params.id, 10);
+  const { codigo_materia, nombre_materia, descripcion, creditos, semestre_recomendado, activa } = req.body;
+  try {
+    await sequelize.query(
+      `UPDATE Materias SET codigo_materia = :codigo, nombre_materia = :nombre, descripcion = :desc, creditos = :creditos, semestre_recomendado = :semestre, activa = :activa, fecha_actualizacion = NOW()
+         WHERE id_materia = :id`,
+      { replacements: { codigo: codigo_materia, nombre: nombre_materia, desc: descripcion, creditos, semestre: semestre_recomendado, activa, id } }
+    );
+    res.json({ success: true });
+  } catch (e) { next(e); }
+};
+
+exports.deleteSubject = async (req, res, next) => {
+  const id = parseInt(req.params.id, 10);
+  try {
+    await sequelize.query(`DELETE FROM Materias WHERE id_materia = :id`, { replacements: { id } });
+    // Also remove any professor assignments
+    await sequelize.query(`DELETE FROM Profesor_Materias WHERE id_materia = :id`, { replacements: { id } });
+    res.json({ success: true });
+  } catch (e) { next(e); }
+};
+
+// Asignar una lista de profesores a una materia (reemplaza las asignaciones actuales)
+exports.assignProfessorsToSubject = async (req, res, next) => {
+  const subjectId = parseInt(req.params.id, 10);
+  const { professor_ids } = req.body;
+  try {
+    await sequelize.transaction(async (t) => {
+      await sequelize.query(`DELETE FROM Profesor_Materias WHERE id_materia = :subjectId`, { replacements: { subjectId }, transaction: t });
+      if (Array.isArray(professor_ids) && professor_ids.length) {
+        const values = professor_ids.map(p => `(${p}, ${subjectId}, NOW(), 1)`).join(',');
+        await sequelize.query(`INSERT INTO Profesor_Materias (id_profesor, id_materia, fecha_asignacion, activo) VALUES ${values}`, { transaction: t });
+      }
+    });
+    res.json({ success: true });
+  } catch (e) { next(e); }
+};
+
+// Asignar una lista de materias a un profesor (reemplaza las asignaciones actuales)
+exports.assignSubjectsToProfessor = async (req, res, next) => {
+  const professorId = parseInt(req.params.id, 10);
+  const { subject_ids } = req.body;
+  try {
+    await sequelize.transaction(async (t) => {
+      await sequelize.query(`DELETE FROM Profesor_Materias WHERE id_profesor = :professorId`, { replacements: { professorId }, transaction: t });
+      if (Array.isArray(subject_ids) && subject_ids.length) {
+        const values = subject_ids.map(s => `(${professorId}, ${s}, NOW(), 1)`).join(',');
+        await sequelize.query(`INSERT INTO Profesor_Materias (id_profesor, id_materia, fecha_asignacion, activo) VALUES ${values}`, { transaction: t });
+      }
+    });
+    res.json({ success: true });
+  } catch (e) { next(e); }
+};
