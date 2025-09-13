@@ -35,20 +35,33 @@ exports.listAssignments = async (req, res, next) => {
          JOIN Materias mat ON mat.id_materia = m.id_materia_asociada
         WHERE m.id_profesor_creador = :teacherId AND m.tipo_mision = 'TAREA'
         ORDER BY m.id_mision DESC`, { replacements: { teacherId } });
+    const data = [];
+    for (const r of rows) {
+      // total students for subject (if associated)
+      let totalStudents = 0;
+      if (r.id_materia_asociada) {
+        const [[cnt]] = await sequelize.query(`SELECT COUNT(*) AS c FROM Inscripciones WHERE id_materia = :m AND estado = 'ACTIVA'`, { replacements: { m: r.id_materia_asociada } });
+        totalStudents = Number(cnt.c) || 0;
+      }
+      // submissions count from Usuario_Misiones
+      const [[sub]] = await sequelize.query(`SELECT COUNT(*) AS c FROM Usuario_Misiones WHERE id_mision = :mi AND estado IN ('PENDIENTE','COMPLETADA')`, { replacements: { mi: r.id_mision } });
+      const submissions = Number(sub.c) || 0;
 
-    const data = rows.map((r) => ({
-      id: r.id_mision,
-      title: r.titulo,
-      description: r.descripcion,
-      points: r.puntos_recompensa || 0,
-      difficulty: (r.dificultad || 'BASICA').toLowerCase(),
-      subject: r.nombre_materia,
-      status: 'active',
-      dueDate: null,
-      createdAt: null,
-      totalStudents: 0,
-      submissions: 0,
-    }));
+      data.push({
+        id: r.id_mision,
+        title: r.titulo,
+        description: r.descripcion,
+        points: r.puntos_recompensa || 0,
+        difficulty: (r.dificultad || 'BASICA').toLowerCase(),
+        subject: r.nombre_materia,
+        subjectId: r.id_materia_asociada || null,
+        status: 'active',
+        dueDate: null,
+        createdAt: null,
+        totalStudents,
+        submissions,
+      });
+    }
 
     res.json({ success: true, data });
   } catch (e) { next(e); }

@@ -20,7 +20,7 @@ exports.register = async (req, res, next) => {
       });
     }
 
-    const { username, email, password, name, rol, sexo, university, career } = req.body;
+  const { username, email, password, name, rol, sexo, university, career, tema } = req.body;
 
     // Validaciones adicionales
     if (!email || !password) {
@@ -66,7 +66,10 @@ exports.register = async (req, res, next) => {
       contrasena_hash: password,
       rol: rol || 'estudiante',
       sexo: (sexo === 'M' || sexo === 'F') ? sexo : null,
-      estado_verificacion: rol === 'profesor' ? 'PENDIENTE' : 'VERIFICADO'
+      estado_verificacion: rol === 'profesor' ? 'PENDIENTE' : 'VERIFICADO',
+      universidad: university || null,
+      carrera: career || null,
+      tema: tema || 'claro'
     });
     
     const token = signToken(user);

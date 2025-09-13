@@ -27,9 +27,15 @@ export default function TeacherMissions() {
   useEffect(() => { load(); }, [load]);
 
   useEffect(() => {
-    (async () => {
-      try { setStudents(await teacherService.getStudents()); } catch (e) { console.error('No se pudieron cargar estudiantes', e); }
-    })();
+      const init = async () => {
+        try {
+          const studentData = await teacherService.getStudents();
+          setStudents(studentData);
+        } catch (e) {
+          console.error('No se pudieron cargar estudiantes', e);
+        }
+      };
+      init();
   }, []);
 
   function updateQuestion(idx, patch) {

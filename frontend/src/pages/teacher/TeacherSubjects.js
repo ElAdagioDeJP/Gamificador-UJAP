@@ -22,17 +22,24 @@ const TeacherSubjects = () => {
   };
 
   useEffect(() => {
-    (async () => {
-      try { setSubjects(await subjectService.getTeacherSubjects()); }
-      catch (e) { console.error(e); }
-      finally { setLoading(false); }
-    })();
-    // load teacher's students for enroll selector
-    (async () => {
+    async function init() {
+      try {
+        setSubjects(await subjectService.getTeacherSubjects());
+      } catch (e) {
+        console.error(e);
+      } finally {
+        setLoading(false);
+      }
+    }
+    async function loadStudentsForSelector() {
       try {
         setStudents(await teacherService.getStudents());
-      } catch (e) { console.error('No se pudieron cargar estudiantes', e); }
-    })();
+      } catch (e) {
+        console.error('No se pudieron cargar estudiantes', e);
+      }
+    }
+    init();
+    loadStudentsForSelector();
   }, []);
 
   if (loading) return <LoadingSpinner/>;

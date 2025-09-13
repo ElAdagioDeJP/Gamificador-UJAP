@@ -20,10 +20,10 @@ const Assignments = () => {
     difficulty: "medium",
     subjectId: null,
   })
-
-  useEffect(() => {
-    loadAssignments()
-  }, [])
+  const [subjects, setSubjects] = useState([])
+  const [showSubmissionsModal, setShowSubmissionsModal] = useState(false)
+  const [currentAssignmentSubmissions, setCurrentAssignmentSubmissions] = useState([])
+  const [currentAssignmentId, setCurrentAssignmentId] = useState(null)
 
   const loadAssignments = async () => {
     setLoading(true)
@@ -36,6 +36,19 @@ const Assignments = () => {
       setLoading(false)
     }
   }
+
+  useEffect(() => {
+    async function init() {
+      await loadAssignments()
+      try {
+        const s = await teacherService.getSubjects()
+        setSubjects(s)
+      } catch (e) {
+        console.error('Failed to load subjects', e)
+      }
+    }
+    init()
+  }, [])
 
   const handleCreateAssignment = async (e) => {
     e.preventDefault()
@@ -203,9 +216,16 @@ const Assignments = () => {
             </div>
 
             <div className="assignment-actions">
-              <Button variant="primary" size="small">
-                Ver Entregas
-              </Button>
+                <Button onClick={async () => {
+                  try {
+                    setCurrentAssignmentId(assignment.id)
+                    const subs = await teacherService.getSubmissions(assignment.id)
+                    setCurrentAssignmentSubmissions(subs)
+                    setShowSubmissionsModal(true)
+                  } catch (e) { console.error(e); alert('Error al cargar entregas') }
+                }} variant="primary" size="small">
+                  Ver Entregas
+                </Button>
               <Button onClick={() => handleEdit(assignment)} variant="secondary" size="small">
                 Editar
               </Button>
@@ -306,6 +326,15 @@ const Assignments = () => {
                   <option value="hard">🔴 Difícil</option>
                 </select>
               </div>
+              <div className="form-group">
+                <label>Materia</label>
+                <select className="form-select" value={newAssignment.subjectId || ''} onChange={(e) => setNewAssignment({ ...newAssignment, subjectId: e.target.value ? Number(e.target.value) : null })}>
+                  <option value="">-- Sin materia (opcional) --</option>
+                  {subjects.map(s => (
+                    <option key={s.id} value={s.id}>{s.name}</option>
+                  ))}
+                </select>
+              </div>
               <div className="modal-actions" style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 12 }}>
                 <Button type="submit" variant="primary">
                   {editing ? 'Guardar Cambios' : 'Crear Tarea'}
@@ -315,6 +344,54 @@ const Assignments = () => {
                 </Button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Submissions modal */}
+      {showSubmissionsModal && (
+        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 1100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }} onClick={() => setShowSubmissionsModal(false)}>
+          <div onClick={(e) => e.stopPropagation()} style={{ background: '#fff', width: '100%', maxWidth: 900, maxHeight: '90vh', overflow: 'auto', borderRadius: 8, padding: 16 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h3>Entregas - Tarea #{currentAssignmentId}</h3>
+              <button onClick={() => setShowSubmissionsModal(false)} style={{ border: 'none', background: 'transparent', fontSize: 18 }}>✕</button>
+            </div>
+            <div style={{ marginTop: 12 }}>
+              {currentAssignmentSubmissions.length ? (
+                <ul style={{ listStyle: 'none', padding: 0 }}>
+                  {currentAssignmentSubmissions.map(s => (
+                    <li key={`${s.assignmentId}-${s.studentId}`} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: '1px solid #efefef' }}>
+                      <div>
+                        <div style={{ fontWeight: 600 }}>{s.studentName}</div>
+                        <div style={{ fontSize: 12, color: '#666' }}>Estado: {s.status} • Enviado: {s.submittedAt ? new Date(s.submittedAt).toLocaleString() : '—'}</div>
+                      </div>
+                      <div style={{ display: 'flex', gap: 8 }}>
+                        <Button onClick={async () => {
+                          try {
+                            await teacherService.approveMissionSubmission(s.assignmentId, s.studentId)
+                            alert('Entrega aprobada')
+                            const refreshed = await teacherService.getSubmissions(currentAssignmentId)
+                            setCurrentAssignmentSubmissions(refreshed)
+                            loadAssignments()
+                          } catch (e) { console.error(e); alert('Error al aprobar') }
+                        }} variant="primary" size="small">Aprobar</Button>
+                        <Button onClick={async () => {
+                          try {
+                            await teacherService.rejectMissionSubmission(s.assignmentId, s.studentId)
+                            alert('Entrega rechazada')
+                            const refreshed = await teacherService.getSubmissions(currentAssignmentId)
+                            setCurrentAssignmentSubmissions(refreshed)
+                            loadAssignments()
+                          } catch (e) { console.error(e); alert('Error al rechazar') }
+                        }} variant="danger" size="small">Rechazar</Button>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <div>No hay entregas para esta tarea.</div>
+              )}
+            </div>
           </div>
         </div>
       )}

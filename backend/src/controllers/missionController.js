@@ -75,19 +75,44 @@ exports.createMission = async (req, res, next) => {
       }
     }
 
-    // If the mission is a normal (TAREA) and teacher assigned specific students, create assignment records
+    // If the mission is a normal task (TAREA) and associated to a subject, auto-assign to all active enrollments
     const assigned = Array.isArray(req.body.assignedStudentIds) ? req.body.assignedStudentIds.map(Number).filter(Boolean) : [];
-    if (assigned.length && (type !== 'DIARIA')) {
+    if (type !== 'DIARIA') {
       await sequelize.transaction(async (t) => {
-        // Build values list safely
-        const values = assigned.map(id => `(${id}, ${mission.id_mision}, 'ASIGNADA')`).join(',');
-        // Insert entries; if already exists, set state to ASIGNADA
-        await sequelize.query(
-          `INSERT INTO Usuario_Misiones (id_usuario, id_mision, estado)
-           VALUES ${values}
-           ON DUPLICATE KEY UPDATE estado = 'ASIGNADA'`,
-          { transaction: t }
-        );
+        if (subjectId) {
+          // Ensure teacher coordinates this subject
+          const [[coord]] = await sequelize.query(
+            `SELECT id_materia FROM Profesor_Materias WHERE id_materia = :s AND id_profesor = :p`,
+            { replacements: { s: subjectId, p: teacherId }, transaction: t }
+          );
+          if (!coord) {
+            // Do not auto-assign if teacher doesn't coordinate subject; respond with created but note no assignments
+            return;
+          }
+          // Select all active enrollments for the subject
+          const [students] = await sequelize.query(
+            `SELECT id_usuario FROM Inscripciones WHERE id_materia = :s AND estado = 'ACTIVA'`,
+            { replacements: { s: subjectId }, transaction: t }
+          );
+          if (students && students.length) {
+            const values = students.map(r => `(${Number(r.id_usuario)}, ${mission.id_mision}, 'ASIGNADA')`).join(',');
+            await sequelize.query(
+              `INSERT INTO Usuario_Misiones (id_usuario, id_mision, estado)
+               VALUES ${values}
+               ON DUPLICATE KEY UPDATE estado = 'ASIGNADA'`,
+              { transaction: t }
+            );
+          }
+        } else if (assigned.length) {
+          // Fallback: teacher explicitly provided student ids (for non-subject tasks)
+          const values = assigned.map(id => `(${id}, ${mission.id_mision}, 'ASIGNADA')`).join(',');
+          await sequelize.query(
+            `INSERT INTO Usuario_Misiones (id_usuario, id_mision, estado)
+             VALUES ${values}
+             ON DUPLICATE KEY UPDATE estado = 'ASIGNADA'`,
+            { transaction: t }
+          );
+        }
       });
     }
 
@@ -101,11 +126,11 @@ exports.listMissions = async (req, res, next) => {
     const { type } = req.query; // DIARIA or NORMAL
     const tipo = type === 'DIARIA' ? 'DIARIA' : 'TAREA';
     const [rows] = await sequelize.query(
-      `SELECT id_mision, titulo, descripcion, tipo_mision, puntos_recompensa, dificultad, created_at
+      `SELECT id_mision, titulo, descripcion, tipo_mision, puntos_recompensa, dificultad, fecha_creacion
          FROM Misiones
         WHERE id_profesor_creador = :prof AND tipo_mision = :tipo
         ORDER BY id_mision DESC`, { replacements: { prof: teacherId, tipo } });
-    res.json({ success: true, data: rows.map(r => ({ id: r.id_mision, title: r.titulo, description: r.descripcion, type: r.tipo_mision, points: r.puntos_recompensa || 0, difficulty: r.dificultad, createdAt: r.created_at })) });
+    res.json({ success: true, data: rows.map(r => ({ id: r.id_mision, title: r.titulo, description: r.descripcion, type: r.tipo_mision, points: r.puntos_recompensa || 0, difficulty: r.dificultad, createdAt: r.fecha_creacion })) });
   } catch (e) { next(e); }
 };
 

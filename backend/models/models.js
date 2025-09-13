@@ -80,6 +80,19 @@ function createModels(sequelize) {
       type: DataTypes.ENUM('PENDIENTE', 'VERIFICADO', 'RECHAZADO'),
       defaultValue: 'VERIFICADO',
     },
+    universidad: {
+      type: DataTypes.STRING(255),
+      allowNull: true,
+    },
+    carrera: {
+      type: DataTypes.STRING(255),
+      allowNull: true,
+    },
+    tema: {
+      type: DataTypes.STRING(100),
+      allowNull: true,
+      defaultValue: 'claro',
+    },
   }, {
     tableName: 'usuarios',
     timestamps: true,

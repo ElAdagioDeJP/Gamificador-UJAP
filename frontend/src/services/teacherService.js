@@ -29,6 +29,11 @@ export const teacherService = {
     return data;
   },
 
+  async getSubjects() {
+    const { data } = await request('/teacher/subjects');
+    return data;
+  },
+
   async getSubmissions(assignmentId = null) {
     const qs = assignmentId ? `?assignmentId=${assignmentId}` : '';
     const { data } = await request(`/teacher/submissions${qs}`);
