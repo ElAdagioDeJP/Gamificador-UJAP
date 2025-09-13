@@ -584,6 +584,26 @@
   background: var(--pixel-bg-light);
 }
 
+/* Rejection textarea (used in reject modal) */
+.reject-textarea {
+  width: 100%;
+  min-height: 120px;
+  padding: 1rem;
+  border: var(--pixel-border-light);
+  background: var(--pixel-bg-light);
+  color: var(--pixel-text-primary);
+  resize: vertical;
+  font-family: "Press Start 2P", monospace;
+  font-size: 0.8rem;
+  box-shadow: var(--pixel-shadow-sm);
+  outline: none;
+}
+
+.reject-textarea:focus {
+  border: 2px solid var(--pixel-red);
+  box-shadow: 6px 6px 0px rgba(0,0,0,0.15);
+}
+
 /* Modal de detalles */
 .details-modal {
   max-width: 500px;
@@ -656,6 +676,8 @@
   image-rendering: pixelated;
   cursor: pointer;
   transition: var(--pixel-transition);
+  max-height: 360px;
+  object-fit: contain;
 }
 
 .carnet-image:hover {
@@ -737,6 +759,35 @@
   border-top: var(--pixel-border);
   background: var(--pixel-bg-light);
 }
+
+/* Carnet actions and wrapper */
+.carnet-image-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.carnet-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.btn-view, .btn-download {
+  padding: 8px 12px;
+  border-radius: 6px;
+  border: 1px solid var(--pixel-border-light);
+  background: white;
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--pixel-text-primary);
+}
+
+.btn-view:hover, .btn-download:hover {
+  background: var(--pixel-blue-light);
+  border-color: var(--pixel-blue);
+}
+
+
 
 /* Botones del modal */
 .btn-cancel, .btn-save, .btn-close {

@@ -92,3 +92,4 @@ async function fixFechaActualizacion() {
 }
 
 fixFechaActualizacion();
+

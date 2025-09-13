@@ -7,9 +7,8 @@ const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api
 const api = axios.create({
   baseURL: API_BASE_URL,
   timeout: 10000,
-  headers: {
-    'Content-Type': 'application/json',
-  },
+  // Do not set a global Content-Type header here so multipart/form-data
+  // requests can let the browser/axios set the proper boundary.
 });
 
 // Interceptor para agregar token de autenticación
@@ -18,6 +17,25 @@ api.interceptors.request.use(
     const token = localStorage.getItem('token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
+    }
+    // If the request body is FormData, remove any Content-Type so the browser
+    // can set multipart/form-data with the correct boundary. For other
+    // requests, ensure application/json is set.
+    try {
+      if (config && config.data && typeof FormData !== 'undefined' && config.data instanceof FormData) {
+        if (config.headers) {
+          delete config.headers['Content-Type'];
+          delete config.headers['content-type'];
+        }
+      } else {
+        if (!config.headers) config.headers = {};
+        // Only set JSON content-type if not already set by caller
+        if (!config.headers['Content-Type'] && !config.headers['content-type']) {
+          config.headers['Content-Type'] = 'application/json';
+        }
+      }
+    } catch (err) {
+      // ignore FormData checks in non-browser environments
     }
     return config;
   },

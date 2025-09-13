@@ -1,96 +1,124 @@
 import React from 'react';
 import { CheckCircleIcon, XCircleIcon, ExclamationTriangleIcon, InformationCircleIcon } from '@heroicons/react/24/outline';
 
-const NotificationModal = ({ 
-  isOpen, 
-  onClose, 
-  type = 'info', 
-  title, 
-  message, 
+const ICON_MAP = {
+  success: { icon: CheckCircleIcon, color: '#1f9d55' },
+  error: { icon: XCircleIcon, color: '#dc2626' },
+  warning: { icon: ExclamationTriangleIcon, color: '#d97706' },
+  info: { icon: InformationCircleIcon, color: '#2563eb' }
+};
+
+const defaultTitles = {
+  success: '¡Solicitud enviada! 🎉',
+  error: 'Error',
+  warning: 'Atención',
+  info: 'Información'
+};
+
+const overlayStyle = {
+  position: 'fixed',
+  inset: 0,
+  backgroundColor: 'rgba(0,0,0,0.45)',
+  zIndex: 50,
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  padding: '24px'
+};
+
+const panelStyle = {
+  width: '100%',
+  maxWidth: 560,
+  background: '#fff',
+  borderRadius: 12,
+  boxShadow: '0 10px 30px rgba(0,0,0,0.15)',
+  overflow: 'hidden'
+};
+
+const headerStyle = {
+  display: 'flex',
+  alignItems: 'center',
+  gap: 16,
+  padding: '20px 20px',
+  borderBottom: '1px solid #f1f1f1'
+};
+
+const bodyStyle = {
+  padding: '18px 20px',
+  color: '#333',
+  fontSize: 15,
+  lineHeight: 1.45
+};
+
+const footerStyle = {
+  padding: '14px 20px',
+  display: 'flex',
+  justifyContent: 'flex-end',
+  gap: 10,
+  borderTop: '1px solid #f6f6f6',
+  background: '#fafafa'
+};
+
+const closeBtnStyle = {
+  border: 'none',
+  background: 'transparent',
+  cursor: 'pointer',
+  fontSize: 18,
+  color: '#666'
+};
+
+const primaryBtnStyle = (type) => ({
+  background: ICON_MAP[type]?.color || ICON_MAP.info.color,
+  color: '#fff',
+  border: 'none',
+  padding: '10px 14px',
+  borderRadius: 8,
+  cursor: 'pointer',
+  fontWeight: 600
+});
+
+const NotificationModal = ({
+  isOpen,
+  onClose,
+  type = 'info',
+  title,
+  message,
   confirmText = 'Entendido',
-  onConfirm 
+  onConfirm
 }) => {
   if (!isOpen) return null;
 
-  const getIcon = () => {
-    switch (type) {
-      case 'success':
-        return <CheckCircleIcon className="w-12 h-12 text-green-500 mx-auto" />;
-      case 'error':
-        return <XCircleIcon className="w-12 h-12 text-red-500 mx-auto" />;
-      case 'warning':
-        return <ExclamationTriangleIcon className="w-12 h-12 text-yellow-500 mx-auto" />;
-      default:
-        return <InformationCircleIcon className="w-12 h-12 text-blue-500 mx-auto" />;
-    }
-  };
+  const Icon = ICON_MAP[type]?.icon || ICON_MAP.info.icon;
+  const iconColor = ICON_MAP[type]?.color || ICON_MAP.info.color;
+  const resolvedTitle = title || defaultTitles[type] || defaultTitles.info;
 
-  const getTitleColor = () => {
-    switch (type) {
-      case 'success':
-        return 'text-green-800';
-      case 'error':
-        return 'text-red-800';
-      case 'warning':
-        return 'text-yellow-800';
-      default:
-        return 'text-blue-800';
-    }
-  };
-
-  const getButtonColor = () => {
-    switch (type) {
-      case 'success':
-        return 'bg-green-600 hover:bg-green-700 focus:ring-green-500';
-      case 'error':
-        return 'bg-red-600 hover:bg-red-700 focus:ring-red-500';
-      case 'warning':
-        return 'bg-yellow-600 hover:bg-yellow-700 focus:ring-yellow-500';
-      default:
-        return 'bg-blue-600 hover:bg-blue-700 focus:ring-blue-500';
-    }
+  const handleConfirm = () => {
+    if (onConfirm) return onConfirm();
+    if (onClose) return onClose();
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto">
-      <div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-        {/* Fondo oscuro */}
-        <div 
-          className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
-          onClick={onClose}
-        ></div>
-
-        {/* Centrar el modal */}
-        <span className="hidden sm:inline-block sm:align-middle sm:h-screen">&#8203;</span>
-
-        {/* Modal */}
-        <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
-          <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-            <div className="sm:flex sm:items-start">
-              <div className="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 sm:mx-0 sm:h-12 sm:w-12">
-                {getIcon()}
-              </div>
-              <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
-                <h3 className={`text-lg leading-6 font-medium ${getTitleColor()}`}>
-                  {title}
-                </h3>
-                <div className="mt-2">
-                  <p className="text-sm text-gray-500">
-                    {message}
-                  </p>
-                </div>
-              </div>
-            </div>
+    <div style={overlayStyle} role="dialog" aria-modal="true">
+      <div style={panelStyle}>
+        <div style={headerStyle}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Icon style={{ width: 44, height: 44, color: iconColor }} aria-hidden />
           </div>
-          <div className="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
-            <button
-              type="button"
-              className={`w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 text-base font-medium text-white ${getButtonColor()} focus:outline-none focus:ring-2 focus:ring-offset-2 sm:ml-3 sm:w-auto sm:text-sm transition-colors duration-200`}
-              onClick={onConfirm || onClose}
-            >
-              {confirmText}
-            </button>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: 18, fontWeight: 700, color: '#111' }}>{resolvedTitle}</div>
+            {message && <div style={{ marginTop: 6, color: '#555', fontSize: 14 }}>{message}</div>}
           </div>
+          <div>
+            <button aria-label="Cerrar" onClick={onClose} style={closeBtnStyle}>✕</button>
+          </div>
+        </div>
+
+        <div style={bodyStyle}>
+          {/* Extra space for longer explanations or actions */}
+        </div>
+
+        <div style={footerStyle}>
+          <button onClick={handleConfirm} style={primaryBtnStyle(type)}>{confirmText}</button>
         </div>
       </div>
     </div>
