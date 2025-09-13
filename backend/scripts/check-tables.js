@@ -52,7 +52,7 @@ function loadEnvConfig() {
 
   return {
     host: config.MYSQL_HOST || '127.0.0.1',
-    port: parseInt(config.MYSQL_PORT) || 3306,
+  port: parseInt(config.MYSQL_PORT) || 3306,
     user: config.MYSQL_USER || 'root',
     password: config.MYSQL_PASSWORD || '',
     database: config.MYSQL_DATABASE || 'studybooster_db'
