@@ -52,7 +52,7 @@ function loadEnvConfig() {
 
   return {
     host: config.MYSQL_HOST || '127.0.0.1',
-    port: parseInt(config.MYSQL_PORT) || 3306,
+  port: parseInt(config.MYSQL_PORT) || 3306,
     user: config.MYSQL_USER || 'root',
     password: config.MYSQL_PASSWORD || '',
     database: config.MYSQL_DATABASE || 'studybooster_db'
@@ -137,7 +137,7 @@ async function main() {
     logError('No se puede conectar a MySQL. Verifica que:');
     log('  1. MySQL esté ejecutándose');
     log('  2. Las credenciales sean correctas');
-    log('  3. El puerto 3306 esté disponible');
+  log('  3. El puerto 3306 esté disponible');
     process.exit(1);
   }
   logSuccess('Conexión a MySQL exitosa');
