@@ -69,6 +69,69 @@ async function ensureSchema() {
     } else {
       console.log('✅ Schema ya está actualizado');
     }
+
+    // Ensure preguntas.id_mision column type and nullability match misiones.id_mision
+    try {
+      const [missionColRows] = await sequelize.query(
+        `SELECT COLUMN_TYPE, IS_NULLABLE FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = :db AND TABLE_NAME = 'misiones' AND COLUMN_NAME = 'id_mision'`,
+        { replacements: { db: dbName } }
+      );
+
+      const [pregColRows] = await sequelize.query(
+        `SELECT COLUMN_TYPE, IS_NULLABLE FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = :db AND TABLE_NAME = 'preguntas' AND COLUMN_NAME = 'id_mision'`,
+        { replacements: { db: dbName } }
+      );
+
+      if (missionColRows.length > 0 && pregColRows.length > 0) {
+        const missionCol = missionColRows[0];
+        const pregCol = pregColRows[0];
+
+        const missionType = missionCol.COLUMN_TYPE.toLowerCase();
+        const pregType = pregCol.COLUMN_TYPE.toLowerCase();
+        const missionNullable = missionCol.IS_NULLABLE === 'YES';
+        const pregNullable = pregCol.IS_NULLABLE === 'YES';
+
+        if (missionType !== pregType || missionNullable !== pregNullable) {
+          console.log('⚠️  Incompatibilidad detectada entre misiones.id_mision y preguntas.id_mision. Intentando corregir...');
+
+          // Find existing FK constraint name (if any)
+          const [fkRows] = await sequelize.query(
+            `SELECT CONSTRAINT_NAME FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE WHERE TABLE_SCHEMA = :db AND TABLE_NAME = 'preguntas' AND COLUMN_NAME = 'id_mision' AND REFERENCED_TABLE_NAME = 'misiones'`,
+            { replacements: { db: dbName } }
+          );
+
+          if (fkRows.length > 0) {
+            const fkName = fkRows[0].CONSTRAINT_NAME;
+            try {
+              await qi.sequelize.query(`ALTER TABLE preguntas DROP FOREIGN KEY \`${fkName}\``);
+              console.log(`ℹ️  Foreign key ${fkName} dropped from preguntas.id_mision`);
+            } catch (e) {
+              console.warn('⚠️  No se pudo dropear la foreign key existente (continuando):', e.message);
+            }
+          }
+
+          // Alter preguntas.id_mision to match misiones.id_mision
+          // If the existing preguntas column allows NULL, keep it NULL to avoid ALTER failures
+          const nullClause = pregNullable ? 'NULL' : (missionNullable ? 'NULL' : 'NOT NULL');
+          try {
+            await qi.sequelize.query(`ALTER TABLE preguntas MODIFY COLUMN id_mision ${missionType} ${nullClause}`);
+            console.log('✅ Columnas alineadas: preguntas.id_mision ahora coincide con misiones.id_mision');
+          } catch (e) {
+            console.error('❌ Error al modificar preguntas.id_mision:', e.message);
+          }
+
+          // Recreate foreign key with a stable name
+          try {
+            await qi.sequelize.query(`ALTER TABLE preguntas ADD CONSTRAINT fk_preguntas_misiones FOREIGN KEY (id_mision) REFERENCES misiones(id_mision) ON DELETE SET NULL ON UPDATE CASCADE`);
+            console.log('✅ Foreign key fk_preguntas_misiones creada en preguntas.id_mision -> misiones.id_mision');
+          } catch (e) {
+            console.error('❌ Error al crear foreign key fk_preguntas_misiones:', e.message);
+          }
+        }
+      }
+    } catch (e) {
+      console.warn('⚠️  Error comprobando/ajustando la FK entre preguntas y misiones (no crítico):', e.message);
+    }
   } catch (error) {
     console.error('❌ Error verificando schema:', error.message);
     // No lanzar error para no interrumpir el inicio del servidor

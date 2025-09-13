@@ -198,7 +198,7 @@ CREATE TABLE preguntas (
   fecha_actualizacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   
   FOREIGN KEY (id_materia) REFERENCES materias(id_materia) ON DELETE SET NULL,
-  FOREIGN KEY (id_mision) REFERENCES misiones(id_mision) ON DELETE SET NULL,
+  CONSTRAINT fk_preguntas_misiones FOREIGN KEY (id_mision) REFERENCES misiones(id_mision) ON DELETE SET NULL,
   
   INDEX idx_materia (id_materia),
   INDEX idx_mision (id_mision),

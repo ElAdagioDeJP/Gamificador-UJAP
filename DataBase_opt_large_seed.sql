@@ -7,6 +7,22 @@
 
 USE studybooster_db;
 
+-- Ensure auxiliary tables for daily mission questions exist with UNSIGNED keys
+CREATE TABLE IF NOT EXISTS Misiones_Preguntas (
+	id_pregunta INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+	id_mision INT UNSIGNED NOT NULL,
+	texto VARCHAR(500) NOT NULL,
+	FOREIGN KEY (id_mision) REFERENCES misiones(id_mision) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS Misiones_Preguntas_Opciones (
+	id_opcion INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+	id_pregunta INT UNSIGNED NOT NULL,
+	texto_opcion VARCHAR(300) NOT NULL,
+	es_correcta TINYINT(1) NOT NULL DEFAULT 0,
+	FOREIGN KEY (id_pregunta) REFERENCES Misiones_Preguntas(id_pregunta) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
 -- 1) Disable foreign keys and truncate child->parent order
 SET FOREIGN_KEY_CHECKS=0;
 

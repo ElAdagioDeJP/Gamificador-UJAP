@@ -17,11 +17,12 @@ exports.createMission = async (req, res, next) => {
       if (!Array.isArray(questions) || questions.length < 4 || questions.length > 5) {
         return res.status(400).json({ success: false, message: 'La misión diaria requiere entre 4 y 5 preguntas' });
       }
-      for (const q of questions) {
-        if (!q.text || !Array.isArray(q.options) || q.options.length < 2) {
+      // Defensive iteration: ensure we only iterate when questions is an array
+      for (const q of Array.isArray(questions) ? questions : []) {
+        if (!q || !q.text || !Array.isArray(q.options) || q.options.length < 2) {
           return res.status(400).json({ success: false, message: 'Cada pregunta necesita texto y al menos 2 opciones' });
         }
-        const correctCount = q.options.filter(o => o.correct).length;
+        const correctCount = (Array.isArray(q.options) ? q.options : []).filter(o => o && o.correct).length;
         if (correctCount !== 1) {
           return res.status(400).json({ success: false, message: 'Cada pregunta debe tener exactamente una respuesta correcta' });
         }
@@ -54,10 +55,11 @@ exports.createMission = async (req, res, next) => {
     if (type === 'DIARIA') {
       // Persist questions & options in custom tables (create if not exist)
       await ensureQuestionTables();
-      for (const q of questions) {
+      // Defensive iteration: only insert when questions is an array
+      for (const q of Array.isArray(questions) ? questions : []) {
         const [[qRow]] = await sequelize.query(
           `INSERT INTO Misiones_Preguntas (id_mision, texto)
-           VALUES (:missionId, :texto)`, { replacements: { missionId: mission.id_mision, texto: q.text } }
+           VALUES (:missionId, :texto)`, { replacements: { missionId: mission.id_mision, texto: q && q.text ? q.text : '' } }
         );
         // MySQL returns no row; fetch id
         let questionId = qRow?.id_pregunta;
@@ -65,11 +67,12 @@ exports.createMission = async (req, res, next) => {
           const [[last]] = await sequelize.query('SELECT id_pregunta FROM Misiones_Preguntas WHERE id_mision = :m ORDER BY id_pregunta DESC LIMIT 1', { replacements: { m: mission.id_mision } });
           questionId = last.id_pregunta;
         }
-        for (const opt of q.options) {
+        // Defensive: only iterate options when it's an array
+        for (const opt of Array.isArray(q && q.options) ? q.options : []) {
           await sequelize.query(
             `INSERT INTO Misiones_Preguntas_Opciones (id_pregunta, texto_opcion, es_correcta)
              VALUES (:pid, :texto, :correcta)`,
-            { replacements: { pid: questionId, texto: opt.text, correcta: opt.correct ? 1 : 0 } }
+            { replacements: { pid: questionId, texto: opt && opt.text ? opt.text : '', correcta: opt && opt.correct ? 1 : 0 } }
           );
         }
       }
