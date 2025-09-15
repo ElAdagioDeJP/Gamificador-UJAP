@@ -3,10 +3,10 @@
 module.exports = {
   up: async (queryInterface, Sequelize) => {
     // Verificar si la columna estado_verificacion ya existe
-    const tableDescription = await queryInterface.describeTable('usuarios');
+    const tableDescription = await queryInterface.describeTable('Usuarios');
     if (!tableDescription.estado_verificacion) {
-      // Agregar columna estado_verificacion a la tabla usuarios
-      await queryInterface.addColumn('usuarios', 'estado_verificacion', {
+      // Agregar columna estado_verificacion a la tabla Usuarios
+      await queryInterface.addColumn('Usuarios', 'estado_verificacion', {
         type: Sequelize.ENUM('PENDIENTE', 'VERIFICADO', 'RECHAZADO'),
         allowNull: false,
         defaultValue: 'VERIFICADO'
@@ -16,8 +16,28 @@ module.exports = {
     // Verificar si la tabla solicitudes_profesores ya existe
     const tableExists = await queryInterface.tableExists('solicitudes_profesores');
     if (!tableExists) {
+      // Alinea el tipo de la columna id_usuario en la tabla usuarios para evitar incompatibilidades
+      try {
+        if (tableDescription && tableDescription.id_usuario) {
+          const currentType = (tableDescription.id_usuario.type || '').toString().toLowerCase();
+          // Si no contiene 'unsigned', intentamos convertirla a UNSIGNED para que coincida con FK
+          if (!currentType.includes('unsigned')) {
+            // Cambiar columna a INTEGER.UNSIGNED manteniendo autoIncrement y not null
+            await queryInterface.changeColumn('Usuarios', 'id_usuario', {
+              type: Sequelize.INTEGER.UNSIGNED,
+              allowNull: false,
+              autoIncrement: true,
+              primaryKey: true,
+            });
+          }
+        }
+      } catch (err) {
+        // Si no podemos cambiar la columna por cualquier razón, registramos y seguimos; la adición de FK fallará si son incompatibles
+        console.warn('Advertencia: no se pudo convertir usuarios.id_usuario a UNSIGNED:', err.message || err);
+      }
+
       // Crear tabla solicitudes_profesores
-      await queryInterface.createTable('solicitudes_profesores', {
+  await queryInterface.createTable('solicitudes_profesores', {
       id_solicitud: {
         type: Sequelize.INTEGER.UNSIGNED,
         autoIncrement: true,
@@ -66,7 +86,7 @@ module.exports = {
       type: 'foreign key',
       name: 'fk_solicitudes_usuario',
       references: {
-        table: 'usuarios',
+        table: 'Usuarios',
         field: 'id_usuario'
       },
       onUpdate: 'CASCADE',
@@ -78,7 +98,7 @@ module.exports = {
       type: 'foreign key',
       name: 'fk_solicitudes_admin',
       references: {
-        table: 'usuarios',
+        table: 'Usuarios',
         field: 'id_usuario'
       },
       onUpdate: 'CASCADE',
@@ -96,7 +116,7 @@ module.exports = {
     // Eliminar tabla solicitudes_profesores
     await queryInterface.dropTable('solicitudes_profesores');
     
-    // Eliminar columna estado_verificacion de la tabla usuarios
-    await queryInterface.removeColumn('usuarios', 'estado_verificacion');
+    // Eliminar columna estado_verificacion de la tabla Usuarios
+    await queryInterface.removeColumn('Usuarios', 'estado_verificacion');
   }
 };
