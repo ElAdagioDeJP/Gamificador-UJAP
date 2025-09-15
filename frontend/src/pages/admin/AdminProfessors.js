@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useAuth } from '../../context/AuthContext';
 import Card from '../../components/common/Card';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import NotificationModal from '../../components/common/NotificationModal';
 import { adminService } from '../../services/adminService';
+import api from '../../services/api';
 import { subjectService } from '../../services/subjectService';
 import './AdminProfessors.css';
 
@@ -24,6 +24,9 @@ const AdminProfessors = () => {
   const [actionLoading, setActionLoading] = useState(false);
   const [showSubjectModal, setShowSubjectModal] = useState(false);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [showRejectModal, setShowRejectModal] = useState(false);
+  const [rejectReason, setRejectReason] = useState('');
+  const [pendingRejectProfessorId, setPendingRejectProfessorId] = useState(null);
   const [selectedProfessor, setSelectedProfessor] = useState(null);
   const [selectedSubjects, setSelectedSubjects] = useState([]);
 
@@ -56,18 +59,11 @@ const AdminProfessors = () => {
     fetchSubjects();
   }, [fetchProfessors, fetchSubjects]);
 
-  const handleStatusChange = async (professorId, newStatus) => {
+  const handleStatusChange = async (professorId, newStatus, motivo_rechazo = '') => {
     try {
       setActionLoading(true);
-      let motivo_rechazo = '';
-      
-      if (newStatus === 'RECHAZADO') {
-        motivo_rechazo = prompt('Ingrese el motivo del rechazo:');
-        if (!motivo_rechazo) return;
-      }
-
       await adminService.updateProfessorStatus(professorId, newStatus, motivo_rechazo);
-      
+
       setModalData({
         type: 'success',
         title: 'Estado Actualizado',
@@ -75,7 +71,7 @@ const AdminProfessors = () => {
         confirmText: 'Entendido'
       });
       setShowModal(true);
-      
+
       fetchProfessors();
     } catch (error) {
       console.error('Error updating status:', error);
@@ -88,7 +84,32 @@ const AdminProfessors = () => {
       setShowModal(true);
     } finally {
       setActionLoading(false);
+      // reset any pending reject state
+      setPendingRejectProfessorId(null);
+      setRejectReason('');
+      setShowRejectModal(false);
     }
+  };
+
+  const openRejectModal = (professorId) => {
+    setPendingRejectProfessorId(professorId);
+    setRejectReason('');
+    setShowRejectModal(true);
+  };
+
+  const confirmReject = async () => {
+    if (!rejectReason || rejectReason.trim().length < 3) {
+      // simple validation: require at least 3 chars
+      setModalData({
+        type: 'error',
+        title: 'Motivo inválido',
+        message: 'Por favor ingrese un motivo de al menos 3 caracteres.',
+        confirmText: 'Entendido'
+      });
+      setShowModal(true);
+      return;
+    }
+    await handleStatusChange(pendingRejectProfessorId, 'RECHAZADO', rejectReason.trim());
   };
 
   const handleAssignSubjects = (professor) => {
@@ -100,6 +121,23 @@ const AdminProfessors = () => {
   const handleViewDetails = (professor) => {
     setSelectedProfessor(professor);
     setShowDetailsModal(true);
+  };
+
+  const getFullUrl = (maybePath) => {
+    if (!maybePath) return null;
+    try {
+      // If it's already absolute (http/https), return as-is
+      if (/^https?:\/\//i.test(maybePath)) return maybePath;
+      // Otherwise build from api base (strip trailing /api if present)
+      const base = (api.defaults.baseURL || '').replace(/\/api\/?$/, '');
+      if (base) return `${base}${maybePath}`;
+  // Derive backend host from api baseURL or env var; fall back to current origin if unavailable
+  const baseFromApi = (api.defaults.baseURL || process.env.REACT_APP_API_URL || '').replace(/\/api\/?$/, '');
+  const fallbackHost = baseFromApi || window.location.origin;
+  return `${fallbackHost}${maybePath}`;
+    } catch (err) {
+      return maybePath;
+    }
   };
 
   const handleSubjectToggle = (subjectId) => {
@@ -324,7 +362,7 @@ const AdminProfessors = () => {
                         </button>
                         <button
                           className="btn-reject"
-                          onClick={() => handleStatusChange(professor.id_usuario, 'RECHAZADO')}
+                          onClick={() => openRejectModal(professor.id_usuario)}
                           disabled={actionLoading}
                         >
                           <span className="btn-icon">❌</span>
@@ -342,30 +380,18 @@ const AdminProfessors = () => {
                           <span className="btn-icon">📚</span>
                           Asignar
                         </button>
-                        <button
-                          className="btn-reject"
-                          onClick={() => handleStatusChange(professor.id_usuario, 'RECHAZADO')}
-                          disabled={actionLoading}
-                        >
-                          <span className="btn-icon">❌</span>
-                          Rechazar
-                        </button>
                       </div>
                     )}
                     {professor.estado_verificacion === 'RECHAZADO' && (
                       <div className="action-buttons">
-                        <button
-                          className="btn-approve"
-                          onClick={() => handleStatusChange(professor.id_usuario, 'VERIFICADO')}
-                          disabled={actionLoading}
-                        >
-                          <span className="btn-icon">✅</span>
-                          Aprobar
+                        <button className="btn-details" onClick={() => handleViewDetails(professor)}>
+                          <span className="btn-icon">ℹ️</span>
+                          Motivo
                         </button>
                       </div>
                     )}
                   </td>
-                </tr>
+                  </tr>
               ))}
             </tbody>
           </table>
@@ -445,12 +471,45 @@ const AdminProfessors = () => {
                   <div className="carnet-container">
                     <div className="carnet-title">Carnet Institucional</div>
                     {selectedProfessor.SolicitudProfesor?.carnet_institucional_url ? (
-                      <img 
-                        src={selectedProfessor.SolicitudProfesor.carnet_institucional_url} 
-                        alt="Carnet del profesor" 
-                        className="carnet-image"
-                        onClick={() => window.open(selectedProfessor.SolicitudProfesor.carnet_institucional_url, '_blank')}
-                      />
+                      (() => {
+                        const fullUrl = getFullUrl(selectedProfessor.SolicitudProfesor.carnet_institucional_url);
+                        return (
+                          <div className="carnet-image-wrapper">
+                            <img
+                              src={fullUrl}
+                              alt="Carnet del profesor"
+                              className="carnet-image"
+                              onError={(e) => {
+                                e.currentTarget.style.display = 'none';
+                                const placeholder = e.currentTarget.nextElementSibling;
+                                if (placeholder) placeholder.style.display = 'flex';
+                              }}
+                            />
+                            <div className="carnet-placeholder" style={{ display: 'none' }}>
+                              <div className="carnet-placeholder-icon">📄</div>
+                              <div>No se pudo cargar la imagen</div>
+                            </div>
+                            <div className="carnet-actions" style={{ marginTop: 8 }}>
+                              <button
+                                className="btn-view"
+                                onClick={() => window.open(fullUrl, '_blank')}
+                              >
+                                Ver en nueva pestaña
+                              </button>
+                              <a
+                                className="btn-download"
+                                href={fullUrl}
+                                download
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                style={{ marginLeft: 8 }}
+                              >
+                                Descargar
+                              </a>
+                            </div>
+                          </div>
+                        );
+                      })()
                     ) : (
                       <div className="carnet-placeholder">
                         <div className="carnet-placeholder-icon">📄</div>
@@ -521,6 +580,32 @@ const AdminProfessors = () => {
       )}
 
       {/* Modal de notificación */}
+      {/* Modal de rechazo (replaces prompt) */}
+      {showRejectModal && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <div className="modal-header">
+              <h3>Rechazar Solicitud</h3>
+              <button className="modal-close" onClick={() => setShowRejectModal(false)}>✕</button>
+            </div>
+            <div className="modal-body">
+              <p style={{ marginBottom: 12 }}>Ingrese el motivo del rechazo para la solicitud del profesor {professors.find(p => p.id_usuario === pendingRejectProfessorId)?.nombre_completo || ''}:</p>
+              <textarea
+                className="reject-textarea"
+                value={rejectReason}
+                onChange={(e) => setRejectReason(e.target.value)}
+                placeholder="Describa el motivo del rechazo..."
+                rows={6}
+              />
+            </div>
+            <div className="modal-footer">
+              <button className="btn-cancel" onClick={() => { setShowRejectModal(false); setRejectReason(''); setPendingRejectProfessorId(null); }}>Cancelar</button>
+              <button className="btn-save" onClick={confirmReject} disabled={actionLoading}>{actionLoading ? 'Enviando...' : 'Confirmar Rechazo'}</button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <NotificationModal
         isOpen={showModal}
         onClose={() => setShowModal(false)}

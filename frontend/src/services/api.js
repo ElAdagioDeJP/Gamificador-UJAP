@@ -7,9 +7,8 @@ const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api
 const api = axios.create({
   baseURL: API_BASE_URL,
   timeout: 10000,
-  headers: {
-    'Content-Type': 'application/json',
-  },
+  // Do not set a global Content-Type header here so multipart/form-data
+  // requests can let the browser/axios set the proper boundary.
 });
 
 // Interceptor para agregar token de autenticación
@@ -19,9 +18,29 @@ api.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+    // If the request body is FormData, remove any Content-Type so the browser
+    // can set multipart/form-data with the correct boundary. For other
+    // requests, ensure application/json is set.
+    try {
+      if (config && config.data && typeof FormData !== 'undefined' && config.data instanceof FormData) {
+        if (config.headers) {
+          delete config.headers['Content-Type'];
+          delete config.headers['content-type'];
+        }
+      } else {
+        if (!config.headers) config.headers = {};
+        // Only set JSON content-type if not already set by caller
+        if (!config.headers['Content-Type'] && !config.headers['content-type']) {
+          config.headers['Content-Type'] = 'application/json';
+        }
+      }
+    } catch (err) {
+      // ignore FormData checks in non-browser environments
+    }
     return config;
   },
   (error) => {
+    console.error('Error en request interceptor:', error);
     return Promise.reject(error);
   }
 );
@@ -32,13 +51,57 @@ api.interceptors.response.use(
     return response;
   },
   (error) => {
-    // Si el token expiró, limpiar localStorage y redirigir al login
-    if (error.response?.status === 401) {
+    console.error('Error en response interceptor:', error);
+    
+    // Manejo de errores de red
+    if (!error.response) {
+      console.error('Error de red:', error.message);
+      return Promise.reject({
+        message: 'Error de conexión. Verifique su conexión a internet.',
+        type: 'NETWORK_ERROR'
+      });
+    }
+
+    const { status, data } = error.response;
+    
+    // Token expirado o inválido
+    if (status === 401) {
+      console.warn('Token expirado o inválido, redirigiendo al login');
       localStorage.removeItem('token');
       localStorage.removeItem('user');
-      window.location.href = '/login';
+      
+      // Solo redirigir si no estamos ya en login
+      if (window.location.pathname !== '/login') {
+        window.location.href = '/login';
+      }
     }
-    return Promise.reject(error);
+    
+    // Error del servidor
+    if (status >= 500) {
+      console.error('Error del servidor:', data);
+      return Promise.reject({
+        message: 'Error interno del servidor. Intente nuevamente más tarde.',
+        type: 'SERVER_ERROR',
+        status
+      });
+    }
+    
+    // Error de validación
+    if (status === 400) {
+      return Promise.reject({
+        message: data.message || 'Datos inválidos',
+        type: 'VALIDATION_ERROR',
+        errors: data.errors || [],
+        status
+      });
+    }
+    
+    // Otros errores
+    return Promise.reject({
+      message: data.message || 'Error desconocido',
+      type: 'UNKNOWN_ERROR',
+      status
+    });
   }
 );
 

@@ -38,6 +38,44 @@ exports.getSummary = async (req, res, next) => {
       difficulty: mapDifficulty(m.dificultad),
     }));
 
+    // Actividad últimos 31 días (misiones completadas por día)
+    const [activityRows] = await sequelize.query(
+      `SELECT DATE(um.fecha_completada) AS fecha
+         FROM Usuario_Misiones um
+        WHERE um.id_usuario = :userId
+          AND um.fecha_completada >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
+     GROUP BY DATE(um.fecha_completada)`,
+      { replacements: { userId } }
+    );
+    const activitySet = new Set((activityRows || []).map(r => (r.fecha instanceof Date ? r.fecha.toISOString().slice(0,10) : String(r.fecha))));
+
+    // También marcar días con duelos finalizados por el usuario (si la columna de fecha existe)
+    try {
+      const [duelRows] = await sequelize.query(
+        `SELECT DATE(d.fecha_creacion) AS fecha
+           FROM Duelos d
+           JOIN Duelo_Participantes dp ON dp.id_duelo = d.id_duelo
+          WHERE dp.id_usuario = :userId
+            AND d.estado = 'FINALIZADO'
+            AND d.fecha_creacion >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
+       GROUP BY DATE(d.fecha_creacion)`,
+        { replacements: { userId } }
+      );
+      (duelRows || []).forEach(r => {
+        const key = (r.fecha instanceof Date ? r.fecha.toISOString().slice(0,10) : String(r.fecha));
+        if (key) activitySet.add(key);
+      });
+    } catch (_) {
+      // Si no existe la columna o falla la consulta, ignoramos los duelos para no romper el endpoint
+    }
+    const activityLast31 = [];
+    for (let i = 30; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      const key = d.toISOString().slice(0,10);
+      activityLast31.push(activitySet.has(key));
+    }
+
     // Skills: derivadas de materias inscritas y progreso (conteo de misiones completadas por materia)
     const [skillsRows] = await sequelize.query(
       `SELECT mat.nombre_materia,
@@ -60,11 +98,11 @@ exports.getSummary = async (req, res, next) => {
 
     // Duelos del usuario
     const [duels] = await sequelize.query(
-      `SELECT d.id_duelo, d.tipo_duelo, d.id_materia, d.estado, d.id_ganador, dp.id_usuario, dp.puntuacion_final,
-              mat.nombre_materia
-         FROM Duelos d
-         JOIN Duelo_Participantes dp ON dp.id_duelo = d.id_duelo
-         JOIN Materias mat ON mat.id_materia = d.id_materia
+   `SELECT d.id_duelo, d.tipo_duelo, d.id_materia, d.estado, d.id_ganador, dp.id_usuario, dp.puntuacion_final,
+        COALESCE(mat.nombre_materia, 'General') AS nombre_materia
+      FROM Duelos d
+      JOIN Duelo_Participantes dp ON dp.id_duelo = d.id_duelo
+      LEFT JOIN Materias mat ON mat.id_materia = d.id_materia
         WHERE d.id_duelo IN (
                 SELECT id_duelo FROM Duelo_Participantes WHERE id_usuario = :userId
               )
@@ -106,10 +144,12 @@ exports.getSummary = async (req, res, next) => {
     const payload = {
       level: user.nivel || 1,
       points: user.puntos_actuales || 0,
+      xp: user.experiencia_total || 0,
       streak: user.racha_dias_consecutivos || 0,
       missions: mappedMissions,
       skills,
       duels: mappedDuels,
+      activityLast31,
     };
 
     res.json({ success: true, data: payload });
@@ -143,6 +183,8 @@ exports.completeMission = async (req, res, next) => {
           `UPDATE Usuarios
               SET puntos_actuales = puntos_actuales + :puntos,
                   experiencia_total = experiencia_total + :exp,
+                  -- subir a lo sumo +1 nivel por misión; 200 XP por nivel
+                  nivel = LEAST(nivel + 1, FLOOR(experiencia_total / 200) + 1),
                   racha_dias_consecutivos = racha_dias_consecutivos + 1,
                   fecha_ultima_actividad = CURDATE()
             WHERE id_usuario = :userId`,
@@ -153,6 +195,8 @@ exports.completeMission = async (req, res, next) => {
           `UPDATE Usuarios
               SET puntos_actuales = puntos_actuales + :puntos,
                   experiencia_total = experiencia_total + :exp,
+                  -- subir a lo sumo +1 nivel por misión; 200 XP por nivel
+                  nivel = LEAST(nivel + 1, FLOOR(experiencia_total / 200) + 1),
                   fecha_ultima_actividad = CURDATE()
             WHERE id_usuario = :userId`,
           { replacements: { userId, puntos: mission.puntos_recompensa || 0, exp: mission.experiencia_recompensa || 0 }, transaction: t }
@@ -162,6 +206,60 @@ exports.completeMission = async (req, res, next) => {
 
     const [[u]] = await sequelize.query(`SELECT puntos_actuales FROM Usuarios WHERE id_usuario = :userId`, { replacements: { userId } });
   res.json({ success: true, data: { pointsEarned: mission.puntos_recompensa || 0, newTotal: u.puntos_actuales, streakIncremented: mission.tipo_mision === 'DIARIA' } });
+  } catch (e) {
+    next(e);
+  }
+};
+
+// Canje de puntos por "parcial": requiere nivel >= 2 y 1000 puntos
+exports.redeemPartial = async (req, res, next) => {
+  try {
+    const userId = req.user.id;
+
+    // Descontar 1000 puntos solo si cumple nivel y saldo suficientes
+    const [result] = await sequelize.query(
+      `UPDATE Usuarios
+         SET puntos_actuales = puntos_actuales - 1000
+       WHERE id_usuario = :userId
+         AND nivel >= 2
+         AND puntos_actuales >= 1000`,
+      { replacements: { userId } }
+    );
+
+    const affectedRows = (result && (result.affectedRows || result.changedRows || result.rowCount)) || 0;
+    if (!affectedRows) {
+      // Obtener datos actuales para informar por qué no se pudo
+      const [[u]] = await sequelize.query(
+        `SELECT nivel, puntos_actuales FROM Usuarios WHERE id_usuario = :userId`,
+        { replacements: { userId } }
+      );
+      const currentLevel = u?.nivel ?? 0;
+      const currentPoints = u?.puntos_actuales ?? 0;
+      return res.status(400).json({
+        success: false,
+        message: currentLevel < 2
+          ? 'Debes alcanzar al menos el nivel 2 para canjear.'
+          : 'No tienes suficientes puntos (se requieren 1000).',
+        data: { level: currentLevel, points: currentPoints }
+      });
+    }
+
+    // Obtener total actualizado
+    const [[u2]] = await sequelize.query(
+      `SELECT puntos_actuales FROM Usuarios WHERE id_usuario = :userId`,
+      { replacements: { userId } }
+    );
+
+    // Intentar registrar el canje si existe la tabla usuario_canjes (opcional, ignorable si no existe)
+    try {
+      await sequelize.query(
+        `INSERT INTO usuario_canjes (id_usuario, id_recompensa, fecha_canje)
+         VALUES (:userId, NULL, NOW())`,
+        { replacements: { userId } }
+      );
+    } catch (_) { /* ignorar si no existe la tabla o columnas */ }
+
+    res.json({ success: true, data: { newTotal: u2?.puntos_actuales ?? 0, cost: 1000 } });
   } catch (e) {
     next(e);
   }

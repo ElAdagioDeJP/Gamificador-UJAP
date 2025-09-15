@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useAuth } from '../../context/AuthContext';
 import Card from '../../components/common/Card';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import NotificationModal from '../../components/common/NotificationModal';
@@ -25,12 +24,14 @@ const AdminSubjects = () => {
     descripcion: '',
     creditos: 3
   });
+  const [isEditing, setIsEditing] = useState(false);
 
   const fetchSubjects = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await subjectService.getAllSubjects();
-      setSubjects(response.data || []);
+      const data = await subjectService.getAllSubjects();
+      // subjectService returns the array of subjects (backend: { success:true, data: [...] } -> subjectService returns data)
+      setSubjects(Array.isArray(data) ? data : (data?.data || []));
     } catch (error) {
       console.error('Error fetching subjects:', error);
       setError('Error al cargar las materias');
@@ -60,7 +61,11 @@ const AdminSubjects = () => {
   const handleCreateSubject = async () => {
     try {
       setActionLoading(true);
-      await subjectService.createSubject(newSubject);
+      if (isEditing && selectedSubject) {
+        await subjectService.updateSubject(selectedSubject.id_materia, newSubject);
+      } else {
+        await subjectService.createSubject(newSubject);
+      }
       
       setModalData({
         type: 'success',
@@ -71,6 +76,7 @@ const AdminSubjects = () => {
       setShowModal(true);
       
       setShowSubjectModal(false);
+      setIsEditing(false);
       setNewSubject({ nombre_materia: '', codigo_materia: '', descripcion: '', creditos: 3 });
       fetchSubjects();
     } catch (error) {
@@ -85,6 +91,18 @@ const AdminSubjects = () => {
     } finally {
       setActionLoading(false);
     }
+  };
+
+  const openEditSubject = (subject) => {
+    setIsEditing(true);
+    setSelectedSubject(subject);
+    setNewSubject({
+      nombre_materia: subject.nombre_materia || '',
+      codigo_materia: subject.codigo_materia || '',
+      descripcion: subject.descripcion || '',
+      creditos: subject.creditos || 3
+    });
+    setShowSubjectModal(true);
   };
 
   const handleAssignProfessors = (subject) => {
@@ -177,8 +195,20 @@ const AdminSubjects = () => {
     );
   }
 
+  // Texto del botón de guardar/crear según estado
+  const saveButtonText = (() => {
+    if (actionLoading) return isEditing ? 'Guardando...' : 'Creando...';
+    return isEditing ? 'Guardar Cambios' : 'Crear Materia';
+  })();
+
   return (
     <div className="admin-subjects">
+      {error && (
+        <div className="page-error">
+          <span className="error-icon">⚠️</span>
+          <span>{error}</span>
+        </div>
+      )}
       {/* Header */}
       <div className="page-header">
         <div className="page-title">
@@ -191,14 +221,14 @@ const AdminSubjects = () => {
             onClick={fetchSubjects}
             disabled={loading}
           >
-            <span className="btn-icon">🔄</span>
+            <span className="btn-icon">🔄</span>{' '}
             Actualizar
           </button>
           <button 
             className="create-btn"
             onClick={() => setShowSubjectModal(true)}
           >
-            <span className="btn-icon">➕</span>
+            <span className="btn-icon">➕</span>{' '}
             Nueva Materia
           </button>
         </div>
@@ -247,8 +277,16 @@ const AdminSubjects = () => {
                   onClick={() => handleAssignProfessors(subject)}
                   disabled={actionLoading}
                 >
-                  <span className="btn-icon">👥</span>
+                  <span className="btn-icon">👥</span>{' '}
                   Asignar
+                </button>
+                <button
+                  className="btn-edit"
+                  onClick={() => openEditSubject(subject)}
+                  disabled={actionLoading}
+                >
+                  <span className="btn-icon">✏️</span>{' '}
+                  Editar
                 </button>
                 <button
                   className="btn-delete"
@@ -291,7 +329,7 @@ const AdminSubjects = () => {
             className="create-btn"
             onClick={() => setShowSubjectModal(true)}
           >
-            <span className="btn-icon">➕</span>
+            <span className="btn-icon">➕</span>{' '}
             Crear Primera Materia
           </button>
         </Card>
@@ -302,18 +340,19 @@ const AdminSubjects = () => {
         <div className="modal-overlay">
           <div className="modal-content">
             <div className="modal-header">
-              <h3>Nueva Materia</h3>
+              <h3>{isEditing ? 'Editar Materia' : 'Nueva Materia'}</h3>
               <button 
                 className="modal-close"
-                onClick={() => setShowSubjectModal(false)}
+                onClick={() => { setShowSubjectModal(false); setIsEditing(false); }}
               >
                 ✕
               </button>
             </div>
             <div className="modal-body">
               <div className="form-group">
-                <label>Nombre de la Materia:</label>
+                <label htmlFor="nombre_materia">Nombre de la Materia:</label>
                 <input
+                  id="nombre_materia"
                   type="text"
                   value={newSubject.nombre_materia}
                   onChange={(e) => setNewSubject(prev => ({ ...prev, nombre_materia: e.target.value }))}
@@ -322,8 +361,9 @@ const AdminSubjects = () => {
                 />
               </div>
               <div className="form-group">
-                <label>Código de la Materia:</label>
+                <label htmlFor="codigo_materia">Código de la Materia:</label>
                 <input
+                  id="codigo_materia"
                   type="text"
                   value={newSubject.codigo_materia}
                   onChange={(e) => setNewSubject(prev => ({ ...prev, codigo_materia: e.target.value }))}
@@ -332,8 +372,9 @@ const AdminSubjects = () => {
                 />
               </div>
               <div className="form-group">
-                <label>Descripción:</label>
+                <label htmlFor="descripcion">Descripción:</label>
                 <textarea
+                  id="descripcion"
                   value={newSubject.descripcion}
                   onChange={(e) => setNewSubject(prev => ({ ...prev, descripcion: e.target.value }))}
                   placeholder="Descripción de la materia..."
@@ -342,8 +383,9 @@ const AdminSubjects = () => {
                 />
               </div>
               <div className="form-group">
-                <label>Créditos:</label>
+                <label htmlFor="creditos">Créditos:</label>
                 <input
+                  id="creditos"
                   type="number"
                   value={newSubject.creditos}
                   onChange={(e) => setNewSubject(prev => ({ ...prev, creditos: parseInt(e.target.value) || 3 }))}
@@ -356,7 +398,7 @@ const AdminSubjects = () => {
             <div className="modal-footer">
               <button 
                 className="btn-cancel"
-                onClick={() => setShowSubjectModal(false)}
+                onClick={() => { setShowSubjectModal(false); setIsEditing(false); }}
               >
                 Cancelar
               </button>
@@ -365,7 +407,7 @@ const AdminSubjects = () => {
                 onClick={handleCreateSubject}
                 disabled={actionLoading || !newSubject.nombre_materia || !newSubject.codigo_materia}
               >
-                {actionLoading ? 'Creando...' : 'Crear Materia'}
+                {saveButtonText}
               </button>
             </div>
           </div>
@@ -388,7 +430,7 @@ const AdminSubjects = () => {
             <div className="modal-body">
               <div className="professors-list">
                 {professors.map((professor) => (
-                  <label key={professor.id_usuario} className="professor-checkbox">
+                  <label key={professor.id_usuario} className="professor-checkbox" aria-label={professor.nombre_completo}>
                     <input
                       type="checkbox"
                       checked={selectedProfessors.includes(professor.id_usuario)}

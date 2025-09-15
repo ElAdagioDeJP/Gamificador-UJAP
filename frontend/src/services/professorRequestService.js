@@ -4,11 +4,8 @@ export const professorRequestService = {
   // Crear solicitud de profesor
   async createProfessorRequest(formData) {
     try {
-      const response = await api.post('/professor-requests/register', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
+      // Let axios/browser set the Content-Type (including boundary) for FormData
+      const response = await api.post('/professor-requests/register', formData);
       return response.data;
     } catch (error) {
       throw error.response?.data || { message: 'Error al crear solicitud de profesor' };

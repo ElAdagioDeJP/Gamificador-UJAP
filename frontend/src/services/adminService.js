@@ -51,4 +51,39 @@ export const adminService = {
     });
     return response.data;
   }
+  ,
+
+  // Materias CRUD
+  getAllSubjects: async (params = {}) => {
+    const query = new URLSearchParams(params).toString();
+    const response = await api.get(`/admin/subjects${query ? `?${query}` : ''}`);
+    return response.data;
+  },
+
+  getSubject: async (subjectId) => {
+    const response = await api.get(`/admin/subjects/${subjectId}`);
+    return response.data;
+  },
+
+  createSubject: async (payload) => {
+    const response = await api.post(`/admin/subjects`, payload);
+    return response.data;
+  },
+
+  updateSubject: async (subjectId, payload) => {
+    const response = await api.put(`/admin/subjects/${subjectId}`, payload);
+    return response.data;
+  },
+
+  deleteSubject: async (subjectId) => {
+    const response = await api.delete(`/admin/subjects/${subjectId}`);
+    return response.data;
+  }
+  ,
+
+  // Obtener estadísticas generales del sistema
+  getSystemStatistics: async () => {
+    const response = await api.get('/admin/system/statistics');
+    return response.data;
+  }
 };

@@ -80,6 +80,19 @@ function createModels(sequelize) {
       type: DataTypes.ENUM('PENDIENTE', 'VERIFICADO', 'RECHAZADO'),
       defaultValue: 'VERIFICADO',
     },
+    universidad: {
+      type: DataTypes.STRING(255),
+      allowNull: true,
+    },
+    carrera: {
+      type: DataTypes.STRING(255),
+      allowNull: true,
+    },
+    tema: {
+      type: DataTypes.STRING(100),
+      allowNull: true,
+      defaultValue: 'claro',
+    },
   }, {
     tableName: 'usuarios',
     timestamps: true,
@@ -840,8 +853,8 @@ function createModels(sequelize) {
   models.Duelo.belongsTo(models.Materia, { foreignKey: 'id_materia' });
 
   // PreguntaDuelo -> RespuestaDuelo
-  models.PreguntaDuelo.hasMany(models.RespuestaDuelo, { foreignKey: 'id_pregunta' });
-  models.RespuestaDuelo.belongsTo(models.PreguntaDuelo, { foreignKey: 'id_pregunta' });
+  models.PreguntaDuelo.hasMany(models.RespuestaDuelo, { foreignKey: 'id_pregunta', as: 'opciones' });
+  models.RespuestaDuelo.belongsTo(models.PreguntaDuelo, { foreignKey: 'id_pregunta', as: 'pregunta' });
 
   // Materia -> PreguntaDuelo
   models.Materia.hasMany(models.PreguntaDuelo, { foreignKey: 'id_materia' });

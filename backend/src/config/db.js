@@ -2,41 +2,167 @@ const models = require('../../models');
 const { sequelize } = models;
 
 async function ensureSchema() {
-  const qi = sequelize.getQueryInterface();
-  const dbName = sequelize.config && sequelize.config.database;
-  if (!dbName) return;
-  // Check and add missing columns for Usuarios: sexo, avatar_url
-  const [rows] = await sequelize.query(
-    `SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = :db AND TABLE_NAME = 'Usuarios'`,
-    { replacements: { db: dbName } }
-  );
-  const cols = new Set(rows.map(r => r.COLUMN_NAME));
-  const alters = [];
-  if (!cols.has('sexo')) {
-    alters.push("ADD COLUMN sexo ENUM('M','F') NULL AFTER email_institucional");
-  }
-  if (!cols.has('avatar_url')) {
-    alters.push("ADD COLUMN avatar_url VARCHAR(255) NULL AFTER sexo");
-  }
-  if (alters.length) {
-    await qi.sequelize.query(`ALTER TABLE Usuarios ${alters.join(', ')}`);
-    // Backfill default avatars when possible
-    await qi.sequelize.query(
-      "UPDATE Usuarios SET avatar_url = CASE sexo WHEN 'M' THEN '/static/avatars/male.svg' WHEN 'F' THEN '/static/avatars/female.svg' ELSE avatar_url END WHERE avatar_url IS NULL"
+  try {
+    const qi = sequelize.getQueryInterface();
+    const dbName = sequelize.config && sequelize.config.database;
+    if (!dbName) {
+      console.warn('⚠️  No se pudo obtener el nombre de la base de datos');
+      return;
+    }
+
+    // Verificar si la tabla usuarios existe
+    const [tables] = await sequelize.query(
+      `SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = :db AND TABLE_NAME = 'usuarios'`,
+      { replacements: { db: dbName } }
     );
-    console.log('Schema updated: Usuarios columns ensured ->', alters.map(a => a.split(' ')[2] || a).join(', '));
+
+    if (tables.length === 0) {
+      console.warn('⚠️  Tabla usuarios no existe. Ejecute las migraciones primero.');
+      return;
+    }
+
+    // Check and add missing columns for usuarios: sexo, avatar_url
+    const [rows] = await sequelize.query(
+      `SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = :db AND TABLE_NAME = 'usuarios'`,
+      { replacements: { db: dbName } }
+    );
+    
+    const cols = new Set(rows.map(r => r.COLUMN_NAME));
+    const alters = [];
+    
+    if (!cols.has('sexo')) {
+      alters.push("ADD COLUMN sexo ENUM('M','F') NULL AFTER email_institucional");
+    }
+    if (!cols.has('avatar_url')) {
+      alters.push("ADD COLUMN avatar_url VARCHAR(255) NULL AFTER sexo");
+    }
+    if (!cols.has('estado_verificacion')) {
+      alters.push("ADD COLUMN estado_verificacion ENUM('PENDIENTE', 'VERIFICADO', 'RECHAZADO') NOT NULL DEFAULT 'VERIFICADO' AFTER rol");
+    }
+    // Add academic fields if missing
+    if (!cols.has('universidad')) {
+      alters.push("ADD COLUMN universidad VARCHAR(255) NULL AFTER estado_verificacion");
+    }
+    if (!cols.has('carrera')) {
+      alters.push("ADD COLUMN carrera VARCHAR(255) NULL AFTER universidad");
+    }
+    if (!cols.has('tema')) {
+      alters.push("ADD COLUMN tema VARCHAR(100) NULL DEFAULT 'claro' AFTER carrera");
+    }
+    
+    if (alters.length) {
+      await qi.sequelize.query(`ALTER TABLE usuarios ${alters.join(', ')}`);
+      
+      // Backfill default avatars when possible
+      await qi.sequelize.query(
+        "UPDATE usuarios SET avatar_url = CASE sexo WHEN 'M' THEN '/static/avatars/male.svg' WHEN 'F' THEN '/static/avatars/female.svg' ELSE avatar_url END WHERE avatar_url IS NULL"
+      );
+
+      // Ensure tema has a sensible default when newly added
+      try {
+        await qi.sequelize.query("UPDATE usuarios SET tema = 'claro' WHERE tema IS NULL OR tema = ''");
+      } catch (e) {
+        // Ignore if column not present yet in some weird race
+      }
+      
+      console.log('✅ Schema actualizado: Columnas añadidas ->', alters.map(a => a.split(' ')[2] || a).join(', '));
+    } else {
+      console.log('✅ Schema ya está actualizado');
+    }
+
+    // Ensure preguntas.id_mision column type and nullability match misiones.id_mision
+    try {
+      const [missionColRows] = await sequelize.query(
+        `SELECT COLUMN_TYPE, IS_NULLABLE FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = :db AND TABLE_NAME = 'misiones' AND COLUMN_NAME = 'id_mision'`,
+        { replacements: { db: dbName } }
+      );
+
+      const [pregColRows] = await sequelize.query(
+        `SELECT COLUMN_TYPE, IS_NULLABLE FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = :db AND TABLE_NAME = 'preguntas' AND COLUMN_NAME = 'id_mision'`,
+        { replacements: { db: dbName } }
+      );
+
+      if (missionColRows.length > 0 && pregColRows.length > 0) {
+        const missionCol = missionColRows[0];
+        const pregCol = pregColRows[0];
+
+        const missionType = missionCol.COLUMN_TYPE.toLowerCase();
+        const pregType = pregCol.COLUMN_TYPE.toLowerCase();
+        const missionNullable = missionCol.IS_NULLABLE === 'YES';
+        const pregNullable = pregCol.IS_NULLABLE === 'YES';
+
+        if (missionType !== pregType || missionNullable !== pregNullable) {
+          console.log('⚠️  Incompatibilidad detectada entre misiones.id_mision y preguntas.id_mision. Intentando corregir...');
+
+          // Find existing FK constraint name (if any)
+          const [fkRows] = await sequelize.query(
+            `SELECT CONSTRAINT_NAME FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE WHERE TABLE_SCHEMA = :db AND TABLE_NAME = 'preguntas' AND COLUMN_NAME = 'id_mision' AND REFERENCED_TABLE_NAME = 'misiones'`,
+            { replacements: { db: dbName } }
+          );
+
+          if (fkRows.length > 0) {
+            const fkName = fkRows[0].CONSTRAINT_NAME;
+            try {
+              await qi.sequelize.query(`ALTER TABLE preguntas DROP FOREIGN KEY \`${fkName}\``);
+              console.log(`ℹ️  Foreign key ${fkName} dropped from preguntas.id_mision`);
+            } catch (e) {
+              console.warn('⚠️  No se pudo dropear la foreign key existente (continuando):', e.message);
+            }
+          }
+
+          // Alter preguntas.id_mision to match misiones.id_mision
+          // If the existing preguntas column allows NULL, keep it NULL to avoid ALTER failures
+          const nullClause = pregNullable ? 'NULL' : (missionNullable ? 'NULL' : 'NOT NULL');
+          try {
+            await qi.sequelize.query(`ALTER TABLE preguntas MODIFY COLUMN id_mision ${missionType} ${nullClause}`);
+            console.log('✅ Columnas alineadas: preguntas.id_mision ahora coincide con misiones.id_mision');
+          } catch (e) {
+            console.error('❌ Error al modificar preguntas.id_mision:', e.message);
+          }
+
+          // Recreate foreign key with a stable name
+          try {
+            await qi.sequelize.query(`ALTER TABLE preguntas ADD CONSTRAINT fk_preguntas_misiones FOREIGN KEY (id_mision) REFERENCES misiones(id_mision) ON DELETE SET NULL ON UPDATE CASCADE`);
+            console.log('✅ Foreign key fk_preguntas_misiones creada en preguntas.id_mision -> misiones.id_mision');
+          } catch (e) {
+            console.error('❌ Error al crear foreign key fk_preguntas_misiones:', e.message);
+          }
+        }
+      }
+    } catch (e) {
+      console.warn('⚠️  Error comprobando/ajustando la FK entre preguntas y misiones (no crítico):', e.message);
+    }
+  } catch (error) {
+    console.error('❌ Error verificando schema:', error.message);
+    // No lanzar error para no interrumpir el inicio del servidor
   }
 }
 
 async function connectDB() {
-  try {
-    await sequelize.authenticate();
-    console.log('MySQL connected via Sequelize');
-    // No usar sync() cuando se usan migraciones
-    // await sequelize.sync();
-  } catch (err) {
-    console.error('DB connection error:', err);
-    throw err;
+  let retries = 3;
+  const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+  while (retries > 0) {
+    try {
+      await sequelize.authenticate();
+      console.log('✅ MySQL conectado via Sequelize');
+      
+      // Verificar schema después de conectar
+      await ensureSchema();
+      
+      return;
+    } catch (err) {
+      retries--;
+      console.error(`❌ Error de conexión a DB (intentos restantes: ${retries}):`, err.message);
+      
+      if (retries === 0) {
+        console.error('💥 No se pudo conectar a la base de datos después de 3 intentos');
+        throw err;
+      }
+      
+      console.log(`⏳ Reintentando en 2 segundos...`);
+      await delay(2000);
+    }
   }
 }
 

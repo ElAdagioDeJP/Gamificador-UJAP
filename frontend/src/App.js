@@ -19,6 +19,7 @@ import Assignments from "./pages/teacher/Assignments"
 import Grading from "./pages/teacher/Grading"
 import TeacherProfile from "./pages/teacher/TeacherProfile"
 import TeacherSubjects from "./pages/teacher/TeacherSubjects"
+import TeacherMissions from "./pages/teacher/TeacherMissions"
 import ProfessorRequests from "./pages/admin/ProfessorRequests"
 import AdminDashboard from "./pages/admin/AdminDashboard"
 import AdminProfessors from "./pages/admin/AdminProfessors"
@@ -135,6 +136,16 @@ function App() {
                   <ProtectedRoute allowedRoles={["profesor"]}>
                     <TeacherLayout>
                       <Assignments />
+                    </TeacherLayout>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/teacher/missions"
+                element={
+                  <ProtectedRoute allowedRoles={["profesor"]}>
+                    <TeacherLayout>
+                      <TeacherMissions />
                     </TeacherLayout>
                   </ProtectedRoute>
                 }

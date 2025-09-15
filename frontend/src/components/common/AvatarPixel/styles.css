@@ -1,0 +1,22 @@
+.avatar-pixel-img {
+  border: var(--pixel-border-light);
+  background: var(--pixel-bg-light);
+  image-rendering: pixelated;
+  object-fit: cover;
+  box-shadow: var(--pixel-shadow-sm);
+  display: block;
+}
+
+.avatar-pixel-initials {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: "Press Start 2P", monospace;
+  font-weight: bold;
+  font-size: 12px;
+  color: #111827;
+  background: linear-gradient(135deg, var(--pixel-yellow-light), var(--pixel-orange-light));
+  border: 2px solid #1f2937;
+  box-shadow: var(--pixel-shadow-sm);
+  border-radius: 8px;
+}

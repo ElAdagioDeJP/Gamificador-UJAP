@@ -6,7 +6,8 @@ const TeacherSidebar = () => {
     { path: "/teacher", label: "Dashboard", icon: "🏠" },
   { path: "/teacher/subjects", label: "Materias", icon: "📚" },
     { path: "/teacher/students", label: "Estudiantes", icon: "👥" },
-    { path: "/teacher/assignments", label: "Tareas", icon: "📝" },
+  { path: "/teacher/assignments", label: "Tareas", icon: "📝" },
+  { path: "/teacher/missions", label: "Misiones", icon: "🎯" },
     { path: "/teacher/grading", label: "Calificaciones", icon: "📊" },
     { path: "/teacher/profile", label: "Perfil", icon: "👤" },
   ]

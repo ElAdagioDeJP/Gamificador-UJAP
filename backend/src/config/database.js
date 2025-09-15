@@ -1,4 +1,7 @@
-require('dotenv').config();
+const path = require('path');
+// Load .env specifically from the backend folder so running scripts from workspace root
+// still pick up backend's environment (MYSQL_PASSWORD, etc).
+require('dotenv').config({ path: path.resolve(__dirname, '../../.env') });
 
 const config = {
   development: {

@@ -121,6 +121,24 @@ const Grading = () => {
                     <Button onClick={() => openGradingModal(submission)} variant="primary" size="small">
                       Calificar
                     </Button>
+                    <Button onClick={async () => {
+                      try {
+                        await teacherService.approveMissionSubmission(submission.assignmentId, submission.studentId);
+                        loadData();
+                        alert('Entrega aprobada');
+                      } catch (e) { console.error(e); alert('Error al aprobar'); }
+                    }} variant="success" size="small">
+                      Aprobar
+                    </Button>
+                    <Button onClick={async () => {
+                      try {
+                        await teacherService.rejectMissionSubmission(submission.assignmentId, submission.studentId);
+                        loadData();
+                        alert('Entrega rechazada');
+                      } catch (e) { console.error(e); alert('Error al rechazar'); }
+                    }} variant="danger" size="small">
+                      Rechazar
+                    </Button>
                     <Button variant="secondary" size="small">
                       Ver Archivo
                     </Button>

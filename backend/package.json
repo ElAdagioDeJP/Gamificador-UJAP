@@ -14,13 +14,19 @@
     "migrate:create": "npx sequelize-cli migration:generate --name",
     "migrate:regenerate": "node scripts/regenerate-migrations.js",
     "migrate:full": "npm run migrate:regenerate && npm run migrate:reset && npm run migrate",
+    "migrate:stable": "node scripts/stable-migrate.js",
+    "migrate:stable:reset": "node scripts/stable-migrate.js --reset",
     "setup:env": "node scripts/setup-env.js",
     "setup:env:force": "node scripts/setup-env.js --force",
     "sync:ip": "node scripts/sync-ip.js",
     "sync:ip:custom": "node scripts/sync-ip.js --ip",
     "seed:admin": "node scripts/createAdmin.js",
     "db:seed": "node scripts/seedDB.js",
-    "db:setup": "npm run setup:env && npm run migrate && npm run seed:admin"
+    "db:setup": "npm run setup:env && npm run migrate:stable",
+    "db:setup:legacy": "npm run setup:env && npm run migrate && npm run seed:admin",
+    "test:db": "node scripts/check-db.js",
+    "test:models": "node test-models.js",
+    "system:check": "node scripts/system-check.js"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",

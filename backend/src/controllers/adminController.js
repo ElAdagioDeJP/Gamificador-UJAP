@@ -215,3 +215,22 @@ exports.updateProfessorStatus = async (req, res, next) => {
     next(error);
   }
 };
+
+// Obtener estadísticas generales del sistema (totales de materias, estudiantes y profesores)
+exports.getSystemStatistics = async (req, res, next) => {
+  try {
+    const sequelize = Usuario.sequelize;
+
+    const [[counts]] = await sequelize.query(
+      `SELECT
+         (SELECT COUNT(*) FROM Materias) AS totalSubjects,
+         (SELECT COUNT(*) FROM Usuarios WHERE rol = 'estudiante') AS totalStudents,
+         (SELECT COUNT(*) FROM Usuarios WHERE rol = 'profesor') AS totalProfessors`
+    );
+
+    res.json({ success: true, data: { totalSubjects: Number(counts.totalSubjects) || 0, totalStudents: Number(counts.totalStudents) || 0, totalProfessors: Number(counts.totalProfessors) || 0 } });
+  } catch (error) {
+    console.error('Error getting system statistics:', error);
+    next(error);
+  }
+};

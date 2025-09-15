@@ -30,7 +30,6 @@ const AdminLayout = ({ children }) => {
               ☰
             </button>
             <div className="admin-logo">
-              <span className="admin-logo-icon">🎮</span>
               <span className="admin-logo-text">StudyBooster Admin</span>
             </div>
           </div>
@@ -40,18 +39,11 @@ const AdminLayout = ({ children }) => {
               <span className="admin-user-name">{user?.name || 'Administrador'}</span>
               <span className="admin-user-role">Administrador del Sistema</span>
             </div>
-            <div className="admin-user-avatar">
-              <img 
-                src={user?.avatar || "/static/avatars/male.svg"} 
-                alt="Admin Avatar" 
-                className="admin-avatar-img"
-              />
-            </div>
+            <div className="admin-user-avatar" aria-hidden="true" />
             <button 
               className="admin-logout-btn"
               onClick={handleLogout}
             >
-              <span className="logout-icon">🚪</span>
               Cerrar Sesión
             </button>
           </div>
@@ -91,36 +83,6 @@ const AdminLayout = ({ children }) => {
                 >
                   <span className="admin-nav-icon">📚</span>
                   <span className="admin-nav-text">Materias</span>
-                </Link>
-              </li>
-              <li className="admin-nav-item">
-                <Link 
-                  to="/admin/students" 
-                  className={`admin-nav-link ${isActive('/admin/students') ? 'active' : ''}`}
-                  onClick={() => setSidebarOpen(false)}
-                >
-                  <span className="admin-nav-icon">👨‍🎓</span>
-                  <span className="admin-nav-text">Estudiantes</span>
-                </Link>
-              </li>
-              <li className="admin-nav-item">
-                <Link 
-                  to="/admin/requests" 
-                  className={`admin-nav-link ${isActive('/admin/requests') ? 'active' : ''}`}
-                  onClick={() => setSidebarOpen(false)}
-                >
-                  <span className="admin-nav-icon">📋</span>
-                  <span className="admin-nav-text">Solicitudes</span>
-                </Link>
-              </li>
-              <li className="admin-nav-item">
-                <Link 
-                  to="/admin/settings" 
-                  className={`admin-nav-link ${isActive('/admin/settings') ? 'active' : ''}`}
-                  onClick={() => setSidebarOpen(false)}
-                >
-                  <span className="admin-nav-icon">⚙️</span>
-                  <span className="admin-nav-text">Configuración</span>
                 </Link>
               </li>
             </ul>

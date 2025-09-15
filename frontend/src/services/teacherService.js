@@ -29,6 +29,11 @@ export const teacherService = {
     return data;
   },
 
+  async getSubjects() {
+    const { data } = await request('/teacher/subjects');
+    return data;
+  },
+
   async getSubmissions(assignmentId = null) {
     const qs = assignmentId ? `?assignmentId=${assignmentId}` : '';
     const { data } = await request(`/teacher/submissions${qs}`);
@@ -68,6 +73,39 @@ export const teacherService = {
 
   async rejectMissionSubmission(missionId, studentId) {
     const { data } = await request(`/teacher/missions/${missionId}/students/${studentId}/reject`, { method: 'POST' });
+    return data;
+  },
+  // Assignments convenience API (map to missions)
+  async createAssignment(payload) {
+    // payload: { title, description, dueDate, points, difficulty, subjectId }
+    const body = {
+      title: payload.title,
+      description: payload.description,
+      type: 'NORMAL',
+      points: payload.points || 0,
+      difficulty: payload.difficulty || 'medium',
+      subjectId: payload.subjectId || null,
+    };
+    const { data } = await request('/teacher/assignments', { method: 'POST', body });
+    return data;
+  },
+
+  async updateAssignment(missionId, payload) {
+    const { data } = await request(`/teacher/assignments/${missionId}`, { method: 'PUT', body: payload });
+    return data;
+  },
+
+  async deleteAssignment(missionId) {
+    const { data } = await request(`/teacher/assignments/${missionId}`, { method: 'DELETE' });
+    return data;
+  },
+  async enrollStudentToSubject(subjectId, studentId) {
+    const { data } = await request(`/teacher/subjects/${subjectId}/students`, { method: 'POST', body: { studentId } });
+    return data;
+  },
+
+  async unenrollStudentFromSubject(subjectId, studentId) {
+    const { data } = await request(`/teacher/subjects/${subjectId}/students/${studentId}`, { method: 'DELETE' });
     return data;
   },
 };

@@ -69,7 +69,7 @@ module.exports = (sequelize, DataTypes) => {
     tableName: 'usuarios',
     timestamps: true,
     createdAt: 'fecha_creacion',
-    updatedAt: false,
+    updatedAt: 'fecha_actualizacion',
     hooks: {
       beforeCreate: async (user) => {
         if (user.changed('contrasena_hash')) {

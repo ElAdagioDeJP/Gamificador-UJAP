@@ -38,4 +38,9 @@ export const gameService = {
     const { data } = await request('/user/profile', { method: 'PUT', body: profileData });
     return data;
   },
+
+  async redeemPartial() {
+    const { data } = await request('/skills/redeem/partial', { method: 'POST' });
+    return data;
+  },
 };

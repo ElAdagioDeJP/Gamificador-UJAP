@@ -2,18 +2,13 @@ const { sequelize } = require('../../models');
 
 exports.listStudents = async (req, res, next) => {
   try {
-    // Students enrolled in any subject coordinated by the teacher
-    const teacherId = req.user.id;
+    // Return all students in the system (role = 'estudiante') so teachers can assign any student to their subjects
     const [rows] = await sequelize.query(
-      `SELECT DISTINCT u.id_usuario, u.nombre_completo, u.email_institucional, u.nivel, u.puntos_actuales,
+      `SELECT u.id_usuario, u.nombre_completo, u.email_institucional, u.nivel, u.puntos_actuales,
               u.racha_dias_consecutivos, u.fecha_ultima_actividad, u.avatar_url
          FROM Usuarios u
-         JOIN Inscripciones i ON i.id_usuario = u.id_usuario
-         JOIN Profesor_Materias pm ON pm.id_materia = i.id_materia
-        WHERE pm.id_profesor = :teacherId
-          AND u.rol = 'estudiante'`,
-      { replacements: { teacherId } }
-    );
+        WHERE u.rol = 'estudiante'
+        ORDER BY u.nombre_completo`);
 
     const data = rows.map((u) => ({
       id: u.id_usuario,
@@ -40,20 +35,33 @@ exports.listAssignments = async (req, res, next) => {
          JOIN Materias mat ON mat.id_materia = m.id_materia_asociada
         WHERE m.id_profesor_creador = :teacherId AND m.tipo_mision = 'TAREA'
         ORDER BY m.id_mision DESC`, { replacements: { teacherId } });
+    const data = [];
+    for (const r of rows) {
+      // total students for subject (if associated)
+      let totalStudents = 0;
+      if (r.id_materia_asociada) {
+        const [[cnt]] = await sequelize.query(`SELECT COUNT(*) AS c FROM Inscripciones WHERE id_materia = :m AND estado = 'ACTIVA'`, { replacements: { m: r.id_materia_asociada } });
+        totalStudents = Number(cnt.c) || 0;
+      }
+      // submissions count from Usuario_Misiones
+      const [[sub]] = await sequelize.query(`SELECT COUNT(*) AS c FROM Usuario_Misiones WHERE id_mision = :mi AND estado IN ('PENDIENTE','COMPLETADA')`, { replacements: { mi: r.id_mision } });
+      const submissions = Number(sub.c) || 0;
 
-    const data = rows.map((r) => ({
-      id: r.id_mision,
-      title: r.titulo,
-      description: r.descripcion,
-      points: r.puntos_recompensa || 0,
-      difficulty: (r.dificultad || 'BASICA').toLowerCase(),
-      subject: r.nombre_materia,
-      status: 'active',
-      dueDate: null,
-      createdAt: null,
-      totalStudents: 0,
-      submissions: 0,
-    }));
+      data.push({
+        id: r.id_mision,
+        title: r.titulo,
+        description: r.descripcion,
+        points: r.puntos_recompensa || 0,
+        difficulty: (r.dificultad || 'BASICA').toLowerCase(),
+        subject: r.nombre_materia,
+        subjectId: r.id_materia_asociada || null,
+        status: 'active',
+        dueDate: null,
+        createdAt: null,
+        totalStudents,
+        submissions,
+      });
+    }
 
     res.json({ success: true, data });
   } catch (e) { next(e); }
@@ -112,5 +120,38 @@ exports.getStats = async (req, res, next) => {
 
     const averageGrade = 85; // placeholder metric
     res.json({ success: true, data: { totalStudents: Number(counts.totalStudents) || 0, activeStudents: Number(counts.totalStudents) || 0, totalAssignments: Number(counts.totalAssignments) || 0, pendingSubmissions: Number(counts.pendingSubmissions) || 0, averageGrade } });
+  } catch (e) { next(e); }
+};
+
+// Teacher: enroll a student into a subject the teacher coordinates
+exports.enrollStudent = async (req, res, next) => {
+  try {
+    const teacherId = req.user.id;
+    const subjectId = Number(req.params.subjectId);
+    const { studentId } = req.body;
+    // Verify teacher coordinates the subject
+    const [[coord]] = await sequelize.query(`SELECT id_materia FROM Profesor_Materias WHERE id_materia = :s AND id_profesor = :t`, { replacements: { s: subjectId, t: teacherId } });
+    if (!coord) return res.status(403).json({ success: false, message: 'No autorizado para esta materia' });
+    // Upsert into Inscripciones (use current year-month as periodo and 'ACTIVA' state)
+    await sequelize.query(
+      `INSERT INTO Inscripciones (id_usuario, id_materia, periodo_academico, estado, fecha_inscripcion)
+       VALUES (:u, :m, DATE_FORMAT(CURDATE(), '%Y-%m'), 'ACTIVA', NOW())
+       ON DUPLICATE KEY UPDATE estado = 'ACTIVA', fecha_inscripcion = NOW()`,
+      { replacements: { u: studentId, m: subjectId } }
+    );
+    res.json({ success: true, data: { studentId: Number(studentId), subjectId } });
+  } catch (e) { next(e); }
+};
+
+// Teacher: unenroll a student from a subject
+exports.unenrollStudent = async (req, res, next) => {
+  try {
+    const teacherId = req.user.id;
+    const subjectId = Number(req.params.subjectId);
+    const studentId = Number(req.params.studentId);
+    const [[coord]] = await sequelize.query(`SELECT id_materia FROM Profesor_Materias WHERE id_materia = :s AND id_profesor = :t`, { replacements: { s: subjectId, t: teacherId } });
+    if (!coord) return res.status(403).json({ success: false, message: 'No autorizado para esta materia' });
+    await sequelize.query(`DELETE FROM Inscripciones WHERE id_usuario = :u AND id_materia = :m`, { replacements: { u: studentId, m: subjectId } });
+    res.json({ success: true, data: { studentId, subjectId, removed: true } });
   } catch (e) { next(e); }
 };
