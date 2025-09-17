@@ -11,9 +11,9 @@ const { Usuario, sequelize } = require('../models');
   const q = (s) => new Promise((res) => rl.question(s, res));
 
   try {
-    const username = (await q('Admin username: ')).trim();
-    const email = (await q('Admin email: ')).trim();
-    const password = (await q('Admin password: ')).trim();
+  const username = (await q('Admin username: ')).trim();
+  const email = (await q('Admin email: ')).trim();
+  const password = (await q('Admin password: ')).trim();
 
     const nombre_usuario = username;
     const email_institucional = email;
@@ -28,12 +28,21 @@ const { Usuario, sequelize } = require('../models');
       }
     });
     if (user) {
-      console.log('User exists, updating password...');
+      console.log('User exists, updating password/role...');
       if (password) user.contrasena_hash = password; // hashed via hooks
+      user.rol = 'admin';
+      user.estado_verificacion = 'VERIFICADO';
       await user.save();
       console.log('Admin updated:', user.toSafeJSON());
     } else {
-      user = await Usuario.create({ nombre_usuario, nombre_completo, email_institucional, contrasena_hash: password });
+      user = await Usuario.create({
+        nombre_usuario,
+        nombre_completo,
+        email_institucional,
+        contrasena_hash: password,
+        rol: 'admin',
+        estado_verificacion: 'VERIFICADO'
+      });
       console.log('Admin created:', user.toSafeJSON());
     }
   } catch (e) {

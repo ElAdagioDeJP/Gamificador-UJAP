@@ -398,6 +398,59 @@
 }
 
 /* Responsive pixel */
+
+/* ======= Heatmap mensual (Progreso Mensual) ======= */
+.weekly-progress .progress-chart {
+  padding: 8px 10px 12px;
+}
+
+.heatmap {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 8px;
+  align-items: start;
+}
+
+.heatmap-labels {
+  display: grid;
+  grid-template-rows: repeat(7, 16px);
+  gap: 6px;
+  margin-top: 2px;
+}
+
+.heatmap-day {
+  font-family: "Press Start 2P", monospace;
+  font-size: 10px;
+  line-height: 16px;
+  color: var(--pixel-text-secondary);
+}
+
+.heatmap-weeks {
+  display: flex;
+  gap: 4px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+
+.heatmap-week {
+  display: grid;
+  grid-template-rows: repeat(7, 16px);
+  gap: 6px;
+}
+
+.heatmap-cell {
+  width: 14px;
+  height: 14px;
+  border: 2px solid var(--pixel-border-color, rgba(0,0,0,0.4));
+  background: var(--pixel-bg-light);
+  box-shadow: 1px 1px 0 rgba(0,0,0,0.2);
+}
+
+.heatmap-cell.active {
+  background: linear-gradient(135deg, #f59e0b 0%, #ef4444 100%);
+  border-color: #7c2d12;
+  box-shadow: 1px 1px 0 rgba(0,0,0,0.25), inset 0 0 0 1px rgba(255,255,255,0.3);
+}
 @media (max-width: 1024px) {
   .dashboard-content {
     grid-template-columns: 1fr;

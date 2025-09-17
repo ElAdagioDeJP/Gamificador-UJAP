@@ -19,10 +19,12 @@ export const GameProvider = ({ children }) => {
   const [gameData, setGameData] = useState({
     level: 1,
     points: 0,
+    xp: 0,
     streak: 0,
     missions: [],
     skills: [],
     duels: [],
+    activityLast31: [],
   })
   const [loading, setLoading] = useState(false)
 
@@ -61,11 +63,24 @@ export const GameProvider = ({ children }) => {
     }
   }
 
+  const redeemPartial = async () => {
+    try {
+      const result = await gameService.redeemPartial()
+      // Refrescamos completamente para asegurar consistencia (puntos, logs, etc.)
+      await loadGameData()
+      return result
+    } catch (error) {
+      console.error("Error redeeming partial:", error)
+      throw error
+    }
+  }
+
   const value = {
     gameData,
     loading,
     completeMission,
     loadGameData,
+    redeemPartial,
   }
 
   return <GameContext.Provider value={value}>{children}</GameContext.Provider>

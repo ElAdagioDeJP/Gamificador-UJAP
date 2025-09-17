@@ -14,7 +14,7 @@ const Dashboard = () => {
     return <LoadingSpinner />
   }
 
-  const { level, points, streak, missions } = gameData
+  const { level, points, streak, missions, xp, activityLast31 = [] } = gameData
   const dailyMissions = missions.filter((mission) => !mission.completed).slice(0, 3)
   const completedToday = missions.filter((mission) => mission.completed).length
 
@@ -25,10 +25,17 @@ const Dashboard = () => {
     hard: "🔴 Difícil",
   }[d] || "❓")
 
-  // Datos del gráfico semanal (claves estables)
+  // Datos del gráfico semanal basados en racha: marcamos los últimos `streak` días.
+  // dayIndex: 0=L, 6=D. Tomamos hoy como referencia y retrocedemos.
   const weekDays = ["L", "M", "X", "J", "V", "S", "D"]
-  const weekHeights = [65, 80, 45, 90, 75, 60, 85]
-  const weeklyChart = weekDays.map((day, i) => ({ day, height: weekHeights[i] }))
+  const today = new Date()
+  const todayIdx = (today.getDay() + 6) % 7 // getDay: 0=Dom..6=Sab -> convertimos a 0=L..6=D
+  const activeSet = new Set()
+  for (let i = 0; i < Math.min(7, Math.max(0, streak)); i++) {
+    const idx = (todayIdx - i + 7) % 7
+    activeSet.add(idx)
+  }
+  const weeklyChart = weekDays.map((day, i) => ({ day, active: activeSet.has(i) }))
 
   // Flags para logros dinámicos
   const showCompletedToday = completedToday > 0
@@ -53,9 +60,9 @@ const Dashboard = () => {
             <p>Académico Avanzado</p>
             <div className="level-progress">
               <div className="progress-bar">
-                <div className="progress-fill" style={{ width: `${(points % 200) / 2}%` }}></div>
+                <div className="progress-fill" style={{ width: `${((xp ?? 0) % 200) / 2}%` }}></div>
               </div>
-              <span>{points % 200}/200 XP</span>
+              <span>{(xp ?? 0) % 200}/200 XP</span>
             </div>
           </div>
         </Card>
@@ -112,19 +119,67 @@ const Dashboard = () => {
           )}
         </Card>
 
-        <Card title="📊 Progreso Semanal" className="weekly-progress">
+        <Card title="📊 Progreso Mensual" className="weekly-progress">
           <div className="progress-chart">
             <div className="chart-placeholder">
-              <div className="chart-bars">
-                {weeklyChart.map(({ day, height }) => (
-                  <div key={day} className="chart-bar">
-                    <div className="bar-fill" style={{ height: `${height}%` }}></div>
-                    <span className="bar-label">{day}</span>
+              {/* Calendario de los últimos 31 días, en columnas por semana (L arriba -> D abajo) */}
+              {(() => {
+                const today = new Date();
+                const earliest = new Date();
+                earliest.setDate(today.getDate() - 30);
+                // Construir set de fechas activas desde activityLast31
+                const activeSet = new Set();
+                for (let i = 0; i < (activityLast31?.length || 0); i++) {
+                  if (activityLast31[i]) {
+                    const d = new Date(earliest);
+                    d.setDate(earliest.getDate() + i);
+                    activeSet.add(d.toISOString().slice(0, 10));
+                  }
+                }
+                // Ajustar inicio a Lunes
+                const startWeekday = (earliest.getDay() + 6) % 7; // 0=L .. 6=D
+                const gridStart = new Date(earliest);
+                gridStart.setDate(earliest.getDate() - startWeekday);
+                const totalDays = Math.floor((today - gridStart) / (24 * 3600 * 1000)) + 1;
+                const weekCount = Math.ceil(totalDays / 7);
+                // Construir columnas (semanas)
+                const columns = [];
+                const cur = new Date(gridStart);
+                for (let w = 0; w < weekCount; w++) {
+                  const col = [];
+                  for (let r = 0; r < 7; r++) {
+                    const iso = cur.toISOString().slice(0, 10);
+                    const withinRange = cur >= earliest && cur <= today;
+                    col.push({ iso, active: withinRange && activeSet.has(iso) });
+                    cur.setDate(cur.getDate() + 1);
+                  }
+                  columns.push(col);
+                }
+                return (
+                  <div className="heatmap" style={{ maxWidth: '100%' }}>
+                    <div className="heatmap-labels">
+                      {weekDays.map((d) => (
+                        <span key={`lbl-${d}`} className="heatmap-day">{d}</span>
+                      ))}
+                    </div>
+                    <div className="heatmap-weeks">
+                      {columns.map((col, wIdx) => (
+                        <div key={`w${wIdx}`} className="heatmap-week">
+                          {col.map((cell, rIdx) => (
+                            <div
+                              key={`c${wIdx}-${rIdx}`}
+                              className={`heatmap-cell ${cell.active ? 'active' : ''}`}
+                              title={cell.iso}
+                            />
+                          ))}
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                ))}
-              </div>
+                );
+              })()}
             </div>
-            <p className="chart-description">Actividad académica de los últimos 7 días</p>
+            <p className="chart-description">Actividad académica de los últimos 31 días</p>
           </div>
         </Card>
       </div>

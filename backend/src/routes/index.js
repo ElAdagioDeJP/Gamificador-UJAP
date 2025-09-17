@@ -19,6 +19,7 @@ router.use('/admin', adminRoutes);
 // Game data
 router.get('/game', auth(true), gameController.getSummary);
 router.post('/missions/:id/complete', auth(true), gameController.completeMission);
+router.post('/skills/redeem/partial', auth(true), gameController.redeemPartial);
 
 // Leaderboard
 router.get('/leaderboard', auth(false), leaderboardController.getLeaderboard);

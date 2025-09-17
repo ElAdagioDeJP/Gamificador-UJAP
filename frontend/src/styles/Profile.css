@@ -114,6 +114,31 @@
   gap: 12px;
 }
 
+.profile-badges {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.badge-university,
+.badge-career {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  background: var(--pixel-bg-light);
+  border: var(--pixel-border-light);
+  border-radius: 8px;
+  box-shadow: var(--pixel-shadow-sm);
+  font-family: "Press Start 2P", monospace;
+  font-size: 10px;
+  color: var(--pixel-text-primary);
+}
+
+.badge-university { background: linear-gradient(135deg, #e0f2fe, #f0f9ff); }
+.badge-career { background: linear-gradient(135deg, #ecfccb, #f7fee7); }
+
 .profile-avatar {
   width: 120px;
   height: 120px;
